@@ -64,13 +64,13 @@ void initRecvPort(void)
 void monitorTask(void *p)
 {
 
-	DevInit();
+	//DevInit();
 	//initRecvPort();//先屏蔽，因为与debug共用一个串口
 
 	
 	while(1)
 	{
-
+		DBG_TRACE("monitorTask\r\n");
 		vTaskDelay(1000);
 	}
 }

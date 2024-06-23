@@ -37,7 +37,7 @@ int main(void)
 	DevMain();//初始化硬件和创建多任务启动
 #endif
 
-#if 1
+#if 0
 	pwm_test();
 #endif
 

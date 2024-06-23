@@ -140,7 +140,7 @@
 #define configTICK_RATE_HZ						  (( TickType_t )1000)
 
 //可使用的最大优先级
-#define configMAX_PRIORITIES					  (10)//(32)
+#define configMAX_PRIORITIES					  (32)
 
 //空闲任务使用的堆栈大小
 #define configMINIMAL_STACK_SIZE				((unsigned short)128)

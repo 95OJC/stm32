@@ -18,8 +18,9 @@ void panelTask(void *p)
 
 	while(1)
 	{
-	
+		DBG_TRACE("panelTask\r\n");
 		vTaskDelay(1000);
+
 	}
 }
 

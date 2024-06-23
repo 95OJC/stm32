@@ -27,7 +27,7 @@
 
 #define QUEUE_TASK			TASK_PRIO_7
 #define MONITOR_TASK		TASK_PRIO_6
-#define PANEL_TASK			TASK_PRIO_3
+#define PANEL_TASK			TASK_PRIO_6//TASK_PRIO_3
 #define CONSOLE_TASK        TASK_PRIO_1
 #define TASK_PRIO_IDLE		TASK_PRIO_0
 
@@ -141,9 +141,9 @@ void DevMain(void)
 	//初始化emul任务的接受数据的结构体全局变量索引
 	systemInit();
 	
-	creatTask(QUEUE_TASK);
-	creatTask(MONITOR_TASK);
-	creatTask(PANEL_TASK);
+	//creatTask(QUEUE_TASK);
+	//creatTask(MONITOR_TASK);
+	//creatTask(PANEL_TASK);
 	creatTask(CONSOLE_TASK);
 	DBG_TRACE("Now Run Task...\r\n");
 
