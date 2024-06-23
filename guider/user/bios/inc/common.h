@@ -26,6 +26,9 @@
 #include "task.h"
 #include "event_groups.h"
 
+/* FATFS文件系统 */
+#include "ff.h"
+
 
 //上层和底层的公共服务定义(需要排列在底层的驱动函数前，确保底层的驱动函数(传参)能够找到该公共服务定义)
 #include "macro.h"

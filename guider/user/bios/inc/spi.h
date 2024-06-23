@@ -32,6 +32,7 @@ DEV_STATUS spi_init(SPI_CFG_INFO *pInfo,u8 spinum);
 DEV_STATUS spi_cs_connect(u8 cs,u8 spinum);
 DEV_STATUS spi_cs_disconnect(u8 cs,u8 spinum);
 DEV_STATUS spi_write(u8 *txbuf, u32 size, u8 spinum);
+DEV_STATUS spi_write_2(const char*txBuf, u32 size, u8 spinum);
 DEV_STATUS spi_read(u8 *rxbuf, u32 size, u8 spinum);
 
 

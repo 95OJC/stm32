@@ -92,6 +92,7 @@ static void spi_config_init(SPI_CFG_INFO *pInfo,u8 spinum)
 }
 
 //结合野火的25.2.3的SPI通讯过程图理解，给SPI的DR发送数据后，等待RXNE标志置1接收数据即可，但每次开始发送数据前都等待DR为空先！
+//该函数每发送一字节后，会接收一个字节数据(会扔弃掉)
 static DEV_STATUS spi_sendByte(u8 *txbuf)
 {
 	DEV_STATUS ret = DEV_OK;
@@ -122,6 +123,37 @@ static DEV_STATUS spi_sendByte(u8 *txbuf)
 	return ret;
 }
 
+static DEV_STATUS spi_sendByte_2(const char *txbuf)
+{
+	DEV_STATUS ret = DEV_OK;
+	
+	SPITimeout = SPIT_FLAG_TIMEOUT;
+	//等待发送缓冲区置1为空，TXE事件
+	//用户写数据给DR寄存器后，DR寄存器把数据发给MOSI后就会置1，用户就可以继续发下一个数据给DR寄存器
+	while(SPI_I2S_GetFlagStatus(SPI_NUM, SPI_I2S_FLAG_TXE) == RESET)
+	{
+		if ((SPITimeout--) == 0) 
+			spi_timeout_userCallBack(11);
+	}
+
+	//把要写入的数据写入发送缓冲区
+	SPI_I2S_SendData(SPI_NUM, (uint16_t )(*txbuf));
+
+	SPITimeout = SPIT_FLAG_TIMEOUT;
+	//等待接收缓冲区置1为非空，RXNE事件
+	while(SPI_I2S_GetFlagStatus(SPI_NUM, SPI_I2S_FLAG_RXNE) == RESET)
+	{
+		if ((SPITimeout--) == 0) 
+			spi_timeout_userCallBack(12);
+	}
+
+	//读取数据寄存器，获取接收缓冲区数据,这里仅读出即可，无需保存变量。
+	SPI_I2S_ReceiveData(SPI_NUM);
+
+	return ret;
+}
+
+//该函数会先发送一个0xff的字节数据后，再读取一字节数据保存到传入的buf指针
 static DEV_STATUS spi_getByte(u8 *rxbuf)
 {
 	DEV_STATUS ret = DEV_OK;
@@ -184,6 +216,23 @@ DEV_STATUS spi_write(u8 *txBuf, u32 size, u8 spinum)
 	for(i=0;i<size;i++)
 	{
 		ret = spi_sendByte(txBuf++);
+		if(ret != DEV_OK)
+		{
+			break;
+		}
+	}
+
+	return ret;
+}
+
+DEV_STATUS spi_write_2(const char*txBuf, u32 size, u8 spinum)
+{
+	u32 i;
+	DEV_STATUS ret;
+	
+	for(i=0;i<size;i++)
+	{
+		ret = spi_sendByte_2(txBuf++);
 		if(ret != DEV_OK)
 		{
 			break;
