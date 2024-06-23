@@ -14,6 +14,13 @@
 3、若spi_flash，在flash.c调用spi_init，需要给flash配置spi的参数传入到spi_init。
 
 ------------------------------------------------------------------*/
+#define DEBUG 1
+
+#if (DEBUG && BIOS_DBG_EN)
+    #define DBG_TRACE(...) PRINTF(__VA_ARGS__)
+#else
+    #define DBG_TRACE(...)
+#endif
 
 /*等待超时时间*/
 #define SPIT_FLAG_TIMEOUT         ((uint32_t)0x1000)
@@ -21,7 +28,7 @@ static __IO u32 SPITimeout = SPIT_FLAG_TIMEOUT;
 
 static void spi_timeout_userCallBack(u8 errorCode)
 {
-	printf("spi_timeout! errorCode = %d",errorCode);
+	DBG_TRACE("spi_timeout! errorCode = %d",errorCode);
 	while(1);
 }
 

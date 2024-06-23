@@ -38,6 +38,12 @@ int main(void)
 #endif
 
 #if 0
+	//SleepMode_test();
+	//StopMode_test();
+	//PVD_config_init();//配置PVD，当电压过低时，会进入中断服务函数，亮红灯
+#endif
+
+#if 0
 	//iwdg_test();
 	//wwdg_test();
 #endif

@@ -35,6 +35,14 @@
 ***每一步都是需要控制SCL一个脉冲，及时把SDA切换为输入和输出模式。
 ------------------------------------------------------------------*/
 
+#define DEBUG 1
+
+#if (DEBUG && BIOS_DBG_EN)
+    #define DBG_TRACE(...) PRINTF(__VA_ARGS__)
+#else
+    #define DBG_TRACE(...)
+#endif
+
 /*等待超时时间*/
 #define I2CT_FLAG_TIMEOUT         ((uint32_t)0x1000)
 static __IO u32 iicTimeout = I2CT_FLAG_TIMEOUT;
@@ -46,7 +54,7 @@ static __IO u32 iicTimeout = I2CT_FLAG_TIMEOUT;
 
 static void iic_timeout_userCallBack(u8 errorCode)
 {
-	printf("iic_timeout! errorCode = %d",errorCode);
+	DBG_TRACE("iic_timeout! errorCode = %d",errorCode);
 	while(1);
 }
 

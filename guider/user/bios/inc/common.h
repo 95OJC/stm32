@@ -49,6 +49,7 @@ typedef enum{
 #include "dma.h"
 #include "wdg.h"
 #include "adda.h"
+#include "sensor.h"
 #include "iic.h"
 #include "spi.h"
 #include "AT24C02eeprom.h"
