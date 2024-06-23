@@ -38,6 +38,11 @@ int main(void)
 #endif
 
 #if 0
+	//iwdg_test();
+	//wwdg_test();
+#endif
+
+#if 0
 	//dma_m2m_test();
 	//dma_m2m_interrupt_test();
 	//dma_m2p_test(M2P_USART);
@@ -47,22 +52,22 @@ int main(void)
 #endif
 
 #if 0
-	da_init();//每秒输出1次DAC转换值（目前是固定2048，即3.3V的一半）
+		extern __IO u16 AD_Value;
+		float AD_getV;
+		ad_init();
+		while(1)
+		{
+			AD_getV = (float)(AD_Value*3.3)/4095;
+			printf("AD_Value = %d\r\n",AD_Value);
+			printf("ADC_get_V = %f\r\n",AD_getV);
+			printf("\r\n");
+			delay_timer_ms(500);
+		}	
+	
 #endif
 
 #if 0
-	extern __IO u16 AD_Value;
-	float AD_getV;
-	ad_init();
-	while(1)
-	{
-		AD_getV = (float)(AD_Value*3.3)/4095;
-		printf("AD_Value = %d\r\n",AD_Value);
-		printf("ADC_get_V = %f\r\n",AD_getV);
-		printf("\r\n");
-		delay_timer_ms(500);
-	}	
-
+	da_init();//打开串口debug后不能正常输出电压，暂没查原因
 #endif
 
 #if 0//test iic eeprom

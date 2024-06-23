@@ -47,6 +47,7 @@ typedef enum{
 #include "timer.h"
 #include "usart.h"
 #include "dma.h"
+#include "wdg.h"
 #include "adda.h"
 #include "iic.h"
 #include "spi.h"

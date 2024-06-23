@@ -17,7 +17,7 @@ static void ad_io_init(void)
 {
 	GPIO_InitTypeDef IO_structInit;
 
-	ADC_GPIO_CLOCK_FUN(ADC_GPIO_CLOCK,ENABLE);
+	ADC_GPIO_BUSx_CLOCK(ADC_GPIO_CLOCK,ENABLE);
 
 	IO_structInit.GPIO_Pin = ADC_PIN;
 	IO_structInit.GPIO_Mode = GPIO_Mode_AIN;
@@ -29,7 +29,7 @@ static void ad_config_init(void)
 {
 	ADC_InitTypeDef ADC_structInit;
 
-	ADC_CLOCK_FUN(ADC_CLOCK,ENABLE);
+	ADC_BUSx_CLOCK_FUN(ADC_CLOCK,ENABLE);
 
 	ADC_structInit.ADC_Mode = ADC_Mode_Independent;//只使用一个ADC，属于独立模式
 	ADC_structInit.ADC_ScanConvMode = DISABLE;//禁止扫描模式，多通道才要，单通道不需要
@@ -75,35 +75,52 @@ void ad_init(void)
 	ADC_SoftwareStartConvCmd(ADCx, ENABLE);	
 }
 
+void ADC1_2_IRQHandler(void)
+{	
+	if (ADC_GetITStatus(ADCx,ADC_IT_EOC)==SET) 
+	{
+		// 读取ADC的转换值
+		AD_Value = ADC_GetConversionValue(ADCx);
+	}
+	ADC_ClearITPendingBit(ADCx,ADC_IT_EOC);
+}
+
 static void da_io_init(void)
 {
 	GPIO_InitTypeDef IO_structInit;
 	
-	DAC_GPIO_CLOCK_FUN(DAC_GPIO_CLOCK, ENABLE);	
+	DAC_GPIO_BUSx_CLOCK(DAC_GPIO_CLOCK, ENABLE);	
 	
 	IO_structInit.GPIO_Pin =  DAC_PIN;
 	IO_structInit.GPIO_Mode = GPIO_Mode_AIN;
-	GPIO_Init(GPIOA, &IO_structInit);
+	GPIO_Init(DAC_PORT, &IO_structInit);
 }
 
 static void da_config_init(void)
 {
 	DAC_InitTypeDef	DA_structInit;
 	 
-	DAC_CLOCK_FUN(DAC_CLOCK, ENABLE);
+	DAC_BUSx_CLOCK(DAC_CLOCK, ENABLE);
 
 	/* 配置DAC 通道1 */
-	DA_structInit.DAC_Trigger = DAC_Trigger_T2_TRGO;//使用TIM2(TRGO事件)作为触发源
+	//使用TIM2的TRGO事件作为触发源(同时使能DMA)，就会定时触发一次TRGO事件触发DMA搬运数据从内存到DAC_DHR数据寄存器，在3个APB1时钟周期后传入DAC_DOR1显示到引脚上会有电压出现
+	//使用TIM2的TRGO事件作为触发源(没有使用DMA)，就会定时触发一次TRGO事件,然后写入DAC_DHR数据寄存器的数据在3个APB1时钟周期后传入DAC_DOR1显示到引脚上会有电压出现?
+	//如果DAC_Trigger填DAC_Trigger_None，则不使用触发功能，通过DAC_SetChannel1Data函数，直接写入DAC_DHR数据寄存器的数据将自动在1个APB1时钟周期后传入DAC_DOR1显示到引脚上会有电压出现？
+	DA_structInit.DAC_Trigger = DAC_Trigger_T2_TRGO;
 	DA_structInit.DAC_WaveGeneration = DAC_WaveGeneration_None;//不使用波形发生器,即不输出伪噪声或三角波
 	DA_structInit.DAC_OutputBuffer = DAC_OutputBuffer_Disable;//不使用DAC输出缓冲
 	DAC_Init(DAC_Channel_1,&DA_structInit);
-
 	/* 配置DAC 通道2 */
   	DAC_Init(DAC_Channel_2, &DA_structInit);
 
-	/* 使能通道1 由PA4输出 , 使能通道2 由PA5输出 */
+	/* 使能通道1 由PA4输出 */
 	DAC_Cmd(DAC_Channel_1, ENABLE);
+	/* 使能通道2 由PA5输出 */
 	DAC_Cmd(DAC_Channel_2, ENABLE);
+
+	/* 使能DAC2的DMA请求 */
+	DAC_DMACmd(DAC_Channel_1, ENABLE);
+	DAC_DMACmd(DAC_Channel_2, ENABLE);	
 }
 
 //1ms产生1次TRGO事件
@@ -128,54 +145,49 @@ static void da_timer_config(void)
 
 static void da_dma_config(void)
 {
-	u32 MaddrVal = 2048;
+	u32 MaddrVal = 1000;
 	DMA_InitTypeDef  DMA_structInit;
 	
 	/* 使能DMA2时钟 */
 	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_DMA2, ENABLE);
 	  
-	/* 配置DMA2 */
-	DMA_structInit.DMA_PeripheralBaseAddr = (DAC_BASE+0x20);//DAC DHR12RD寄存器，12位、右对齐、双通道			  //外设数据地址
+	/* 配置DMA2-DAC1 */
+	DMA_structInit.DMA_PeripheralBaseAddr = (u32)&DAC->DHR12R1;//(DAC_BASE+0x20);//DAC DHR12RD寄存器，12位、右对齐、双通道			  //外设数据地址
 	DMA_structInit.DMA_MemoryBaseAddr = (u32)&MaddrVal;//内存数据地址
 	DMA_structInit.DMA_DIR = DMA_DIR_PeripheralDST;//数据传输方向内存至外设
 	DMA_structInit.DMA_BufferSize = 1;//缓存大小为1字节	  
 	DMA_structInit.DMA_PeripheralInc = DMA_PeripheralInc_Disable;//外设数据地址固定  
-	DMA_structInit.DMA_MemoryInc = DMA_MemoryInc_Disable;//内存数据地址固定
+	DMA_structInit.DMA_MemoryInc = DMA_MemoryInc_Enable;//DMA_MemoryInc_Disable;//内存数据地址固定
 	DMA_structInit.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Word;//外设数据以字为单位
 	DMA_structInit.DMA_MemoryDataSize = DMA_MemoryDataSize_Word;//内存数据以字为单位   
 	DMA_structInit.DMA_Mode = DMA_Mode_Circular;//循环模式
 	DMA_structInit.DMA_Priority = DMA_Priority_High;//高DMA通道优先级
 	DMA_structInit.DMA_M2M = DMA_M2M_Disable;//非内存至内存模式  
-	
+	DMA_Init(DMA2_Channel3, &DMA_structInit);
+	/* 配置DMA2-DAC2 */
+	DMA_structInit.DMA_PeripheralBaseAddr = (u32)&DAC->DHR12R2;
 	DMA_Init(DMA2_Channel4, &DMA_structInit);
-	  
-	/* 使能DMA2-14通道 */
+
+	/* 使能DMA2-3通道 */
+	DMA_Cmd(DMA2_Channel3, ENABLE);
+	/* 使能DMA2-4通道 */
 	DMA_Cmd(DMA2_Channel4, ENABLE);
 
 
 }
 
-//PA4好像正常，但是PA5暂时不能输出DA值，需要调试
+//每秒输出1次DAC转换值（目前是固定1000，约为0.8V），在DAC1的PA4引脚输出电压和DAC2的PA5引脚输出电压
 void da_init(void)
 {
 	da_io_init();
+	//配置DMA为定时器2的TRGO事件作触发源
 	da_config_init();
-
-	/* 使能DAC2的DMA请求 */
-	DAC_DMACmd(DAC_Channel_2, ENABLE);
-	da_dma_config();
+	//启动定时器，产生TRGO事件
+	da_timer_config();	
 	
-	da_timer_config();
+	//配置DAC的DMA搬运内存数据到DAC_DHR数据寄存器
+	da_dma_config();
 
-}
 
-void ADC1_2_IRQHandler(void)
-{	
-	if (ADC_GetITStatus(ADCx,ADC_IT_EOC)==SET) 
-	{
-		// 读取ADC的转换值
-		AD_Value = ADC_GetConversionValue(ADCx);
-	}
-	ADC_ClearITPendingBit(ADCx,ADC_IT_EOC);
 }
 

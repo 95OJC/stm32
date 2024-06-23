@@ -50,6 +50,11 @@
 
 
 /***********************************usart****************************************/
+//流控模拟io
+#define	USART_RTS_BUSx_CLOCK(x,s)	RCC_APB2PeriphClockCmd(x,s)
+#define	USART_RTS_CLOCK				RCC_APB2Periph_GPIOC//RCC_APB2Periph_GPIOB
+#define USART_RTS_GPIO				GPIOC//GPIOB
+#define USART_RTS_PIN				GPIO_Pin_7//GPIO_Pin_6
 #if 1
 #define	USART_NUM					USART1
 #define	USART_BUSx_CLOCK(x,s)		RCC_APB2PeriphClockCmd(x,s)
@@ -89,12 +94,6 @@
 #define	USART_IRQHandler_FUNC		USART2_IRQHandler
 
 #endif
-//流控模拟io
-#define	USART_RTS_BUSx_CLOCK(x,s)	RCC_APB2PeriphClockCmd(x,s)
-#define	USART_RTS_CLOCK				RCC_APB2Periph_GPIOC//RCC_APB2Periph_GPIOB
-#define USART_RTS_GPIO				GPIOC//GPIOB
-#define USART_RTS_PIN				GPIO_Pin_7//GPIO_Pin_6
-
 /***********************************dma****************************************/
 /*m2m*/
 #define	DMA_M2M_BUSx_CLOCK(x,s)			RCC_AHBPeriphClockCmd(x,s)
@@ -134,33 +133,27 @@
 #define	DMA_P2M_IRQHandler_FUNC			DMA1_Channel5_IRQHandler
 
 /***********************************adc****************************************/
+#define	ADC_GPIO_BUSx_CLOCK(x,s)		RCC_APB2PeriphClockCmd(x,s)
+#define	ADC_GPIO_CLOCK					RCC_APB2Periph_GPIOC
+#define	ADC_PORT                   		GPIOC
+#define	ADC_PIN                     	GPIO_Pin_1	
+
+#define	ADC_BUSx_CLOCK_FUN(r,s)			RCC_APB2PeriphClockCmd(r,s)		
+#define ADC_CLOCK						RCC_APB2Periph_ADC2
+#define ADCx							ADC2			
+#define	ADC_CHANNEL                 	ADC_Channel_11
 //nvic
-#define	ADC_NVIC_IRQN               ADC1_2_IRQn
-#define	ADC_NVIC_PRIO				0x01
-
-//gpio
-#define	ADC_GPIO_CLOCK_FUN(r,s)		RCC_APB2PeriphClockCmd(r,s)
-#define	ADC_GPIO_CLOCK				RCC_APB2Periph_GPIOC
-#define	ADC_PORT                    GPIOC
-#define	ADC_PIN                     GPIO_Pin_1	
-
-//adc
-#define	ADC_CLOCK_FUN(r,s)			RCC_APB2PeriphClockCmd(r,s)		
-#define ADC_CLOCK					RCC_APB2Periph_ADC2
-#define ADCx						ADC2			
-#define	ADC_CHANNEL                 ADC_Channel_11
-
+#define	ADC_NVIC_IRQN               	ADC1_2_IRQn
+#define	ADC_NVIC_PRIO					0x01
 
 /***********************************dac****************************************/
-//gpio
-#define	DAC_GPIO_CLOCK_FUN(r,s)		RCC_APB2PeriphClockCmd(r,s)
-#define	DAC_GPIO_CLOCK				RCC_APB2Periph_GPIOA
-#define	DAC_PORT                    GPIOA
-#define	DAC_PIN                     (GPIO_Pin_4 | GPIO_Pin_5)
+#define	DAC_GPIO_BUSx_CLOCK(r,s)		RCC_APB2PeriphClockCmd(r,s)
+#define	DAC_GPIO_CLOCK					RCC_APB2Periph_GPIOA
+#define	DAC_PORT                    	GPIOA
+#define	DAC_PIN                     	(GPIO_Pin_4 | GPIO_Pin_5)
 
-//dac
-#define	DAC_CLOCK_FUN(r,s)			RCC_APB1PeriphClockCmd(r,s)		
-#define DAC_CLOCK					RCC_APB1Periph_DAC
+#define	DAC_BUSx_CLOCK(r,s)				RCC_APB1PeriphClockCmd(r,s)		
+#define DAC_CLOCK						RCC_APB1Periph_DAC
 
 
 /***********************************iic****************************************/
