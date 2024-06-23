@@ -17,9 +17,9 @@ typedef struct _FIFO_CTRL
 typedef struct _FIFO_CTRL_INFO
 {
 	FIFO_CTRL rx;
-	u32 rx_tag;//标志位，可用于无流控时，FIFO满了不接收数据
+	u32 rx_tag;//用于让上层知道通讯端口接收状态
 	FIFO_CTRL tx;
-	u32 tx_tag;
+	u32 tx_tag;//用于让上层知道通讯端口发送状态
 
 }FIFO_CTRL_INFO;
 

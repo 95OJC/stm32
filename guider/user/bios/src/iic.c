@@ -227,7 +227,7 @@ DEV_STATUS iic_ByteRead(u8 device_addr, u32 readAddr, u8 *pBuffer)
 	return ret;
 }
 
-#if 1
+#if 0
 
 //100kHZµÄiicËÙ¶È£¬5us×óÓÒ
 static void soft_delay(__IO uint32_t nCount)

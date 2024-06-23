@@ -1,6 +1,8 @@
 #ifndef __if_h
 #define	__if_h
 
+#define IF_OPEN_BIT     0x01
+
 typedef struct{
 	BOOL valid;//端口是否有效，外设端口注册后有效,有效才能if_open
 	BOOL (*open)(BUFINFO *pInfo, void *pCtrl);

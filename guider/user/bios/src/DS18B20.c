@@ -133,7 +133,7 @@ u16 DS18B20_ReadTemperature(void)
     while(!DS18B20_ResetInit());//初始化
     DS18B20_WriteByte(0xcc);//跳过读64位序列号的操作，仅用于一个从机情况下
     DS18B20_WriteByte(0x44);//启动温度转换
-    delay_timer_ms(2);//需要等待转换时间
+    vTaskDelay(2);//需要等待转换时间
 
     while(!DS18B20_ResetInit());//初始化
     DS18B20_WriteByte(0xcc);//跳过读64位序列号的操作，仅用于一个从机情况下

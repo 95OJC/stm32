@@ -1,6 +1,7 @@
 #include "common.h"
 #include "W25Q64flash.h"
 
+#if 0
 /*
 	写数据需要等待flash空闲。
 	擦除flash需要等待flash空闲。
@@ -365,5 +366,5 @@ DEV_STATUS spi_flash_init(void)
 
 	return SPI_FLASH_INIT(&pInfo);
 }
-
+#endif
 

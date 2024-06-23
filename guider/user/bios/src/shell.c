@@ -24,6 +24,16 @@ shell功能(串口cmd)。
 输入的CMD参数太少，会显示该cmd的tip提示。
 
 ------------------------------------------------------------------*/
+
+#define DEBUG 1
+
+#if (DEBUG && BIOS_DBG_EN)
+    #define DBG_TRACE(...) PRINTF(__VA_ARGS__)
+#else
+    #define DBG_TRACE(...)
+#endif
+
+
 static cmdctrl_t sCmdctrl;
 static const cmd_t sCmdTbl[];
 
@@ -274,9 +284,9 @@ static u8 receive_input_data(u8 *prompt,cmdctrl_t *pCtrl)
 }
 
 
-void shell_task(void)
+void shell_task(void *p)
 {
-	cmdctrl_t *pInfo = &sCmdctrl;//这里不用定义全局变量，但是局部变量需要初始化0值
+	cmdctrl_t *pInfo = &sCmdctrl;//这里不用定义全局变量，因为只是在该函数内调用，但是局部变量需要初始化0值
 	
 	while(1)
 	{
@@ -292,7 +302,7 @@ void shell_task(void)
 				{
 					if(pInfo->argc > pInfo->pCmd->bMaxArgs)
 					{
-						printf("argc out error!\r\n");
+						DBG_TRACE("argc out error!\r\n");
 					}
 					else
 					{
@@ -300,7 +310,7 @@ void shell_task(void)
 						{
 							if(pInfo->pCmd->func(pInfo) != NULL)
 							{
-								//printf("argc little error!\r\n");
+								//DBG_TRACE("argc little error!\r\n");
 							}
 							else
 							{
@@ -311,7 +321,7 @@ void shell_task(void)
 				}
 				else
 				{
-					printf("cmd error!\r\n");
+					DBG_TRACE("cmd error!\r\n");
 					
 				}
 			}
@@ -321,6 +331,7 @@ void shell_task(void)
 
 }
 
+#if 1
 static void * cmd_help(cmdctrl_t *pCtrl)
 {
 	cmd_t *pcmd;
@@ -329,10 +340,10 @@ static void * cmd_help(cmdctrl_t *pCtrl)
 	
 	if(pCtrl->argc == 1)
 	{
-		printf("\r\ncmd list!\r\n");
+		DBG_TRACE("\r\ncmd list!\r\n");
 		while(pcmd->pFullName != NULL)
 		{
-			printf("%s(%s)\r\n",pcmd->pFullName,pcmd->PshortName);
+			DBG_TRACE("%s(%s)\r\n",pcmd->pFullName,pcmd->PshortName);
 			pcmd++;
 		}
 	}
@@ -343,13 +354,13 @@ static void * cmd_help(cmdctrl_t *pCtrl)
 		{
 			if (pcmd->func)
 			{
-				printf("param:%s\r\n",pcmd->pHelp);
+				DBG_TRACE("param:%s\r\n",pcmd->pHelp);
 			}
 
 		}
 		else
 		{
-			printf("Unknown Command!\r\n");
+			DBG_TRACE("Unknown Command!\r\n");
 		}
 		//s32 data;
 		//data = string_2_integer(pCtrl->argv[1]);
@@ -370,7 +381,7 @@ static void * cmd_TTP224_test(cmdctrl_t *pCtrl)
 	
 	if(pCtrl->argc < 2)
 	{
-		printf("%s\r\n",pCtrl->pCmd->pTip);
+		DBG_TRACE("%s\r\n",pCtrl->pCmd->pTip);
 		return (void *) 1;
 	}
 	
@@ -379,7 +390,7 @@ static void * cmd_TTP224_test(cmdctrl_t *pCtrl)
 	if(data == 0)
 	{
 		keyTTP224_init();
-		printf("TTP224_init ok!\r\n");
+		DBG_TRACE("TTP224_init ok!\r\n");
 	}
 	else
 	{
@@ -388,13 +399,13 @@ static void * cmd_TTP224_test(cmdctrl_t *pCtrl)
 			if(key_ret)
 			{
 				if(key_ret == 1)
-					printf("1\r\n");
+					DBG_TRACE("1\r\n");
 				if(key_ret == 2)
-					printf("2\r\n");
+					DBG_TRACE("2\r\n");
 				if(key_ret == 3)
-					printf("3\r\n");
+					DBG_TRACE("3\r\n");
 				if(key_ret == 4)
-					printf("4\r\n");				
+					DBG_TRACE("4\r\n");				
 			}
 			shell_asyn_get_char(&pc_in);
 			
@@ -411,7 +422,7 @@ static void * cmd_WaterSensor_test(cmdctrl_t *pCtrl)
 	
 	if(pCtrl->argc < 2)
 	{
-		printf("%s\r\n",pCtrl->pCmd->pTip);
+		DBG_TRACE("%s\r\n",pCtrl->pCmd->pTip);
 		return (void *) 1;
 	}
 
@@ -420,7 +431,7 @@ static void * cmd_WaterSensor_test(cmdctrl_t *pCtrl)
 	if(data == 0)
 	{
 		WaterSensor_init();
-		printf("WaterSensor_init ok!\r\n");
+		DBG_TRACE("WaterSensor_init ok!\r\n");
 	}
 	else
 	{
@@ -428,7 +439,7 @@ static void * cmd_WaterSensor_test(cmdctrl_t *pCtrl)
 			WS_ret = WaterSensor_monitor();
 			if(WS_ret)
 			{
-				printf("有水!\r\n");
+				DBG_TRACE("有水!\r\n");
 			}
 			shell_asyn_get_char(&pc_in);
 
@@ -444,19 +455,19 @@ static void * cmd_DCmotor_test(cmdctrl_t *pCtrl)
 	
 	if(pCtrl->argc < 2)
 	{
-		printf("%s\r\n",pCtrl->pCmd->pTip);
+		DBG_TRACE("%s\r\n",pCtrl->pCmd->pTip);
 		return (void *) 1;
 	}
 
 	if(data == 0)
 	{
 		DCmotor_init();
-		printf("heater_init ok!\r\n");
+		DBG_TRACE("heater_init ok!\r\n");
 	}
 	else
 	{
 		DCmotor_toggle();
-		printf("出水/取消\r\n");
+		DBG_TRACE("出水/取消\r\n");
 	}
 
 	return (void *) 0;
@@ -468,19 +479,19 @@ static void * cmd_heater_test(cmdctrl_t *pCtrl)
 	
 	if(pCtrl->argc < 2)
 	{
-		printf("%s\r\n",pCtrl->pCmd->pTip);
+		DBG_TRACE("%s\r\n",pCtrl->pCmd->pTip);
 		return (void *) 1;
 	}
 
 	if(data == 0)
 	{
 		heater_init();
-		printf("heater_init ok!\r\n");
+		DBG_TRACE("heater_init ok!\r\n");
 	}
 	else
 	{
 		heater_toggle();
-		printf("加热/常温\r\n");
+		DBG_TRACE("加热/常温\r\n");
 	}
 
 	return (void *) 0;
@@ -494,7 +505,7 @@ static void * cmd_DS18B20_test(cmdctrl_t *pCtrl)
 	
 	if(pCtrl->argc < 2)
 	{
-		printf("%s\r\n",pCtrl->pCmd->pTip);
+		DBG_TRACE("%s\r\n",pCtrl->pCmd->pTip);
 		return (void *) 1;
 	}
 	
@@ -503,17 +514,17 @@ static void * cmd_DS18B20_test(cmdctrl_t *pCtrl)
 	if(data == 0)
 	{
 		DS18B20_init();
-		printf("DS18B20_init ok!\r\n");
+		DBG_TRACE("DS18B20_init ok!\r\n");
 	}
 	else
 	{
 		do{	
 			temp = DS18B20_ReadTemperature();
-			printf("temp = %d\r\n",temp);
+			DBG_TRACE("temp = %d\r\n",temp);
 			
 			shell_asyn_get_char(&pc_in);
 
-			delay_timer_ms(200);
+			vTaskDelay(200);
 		}while(pc_in != ESC);			
 	}
 
@@ -528,7 +539,7 @@ static void * cmd_OLED096_test(cmdctrl_t *pCtrl)
 	
 	if(pCtrl->argc < 2)
 	{
-		printf("%s\r\n",pCtrl->pCmd->pTip);
+		DBG_TRACE("%s\r\n",pCtrl->pCmd->pTip);
 		return (void *) 1;
 	}
 
@@ -537,7 +548,7 @@ static void * cmd_OLED096_test(cmdctrl_t *pCtrl)
 	if(data ==0)
 	{
 		OLED_Init();
-		printf("OLED_Init ok!\r\n");
+		DBG_TRACE("OLED_Init ok!\r\n");
 	}
 	else if(data == 1)//满屏8*16字符
 	{
@@ -569,7 +580,7 @@ static void * cmd_OLED096_test(cmdctrl_t *pCtrl)
 			}
 		}
 		
-		delay_timer_ms(500);
+		vTaskDelay(500);
 		
 		for(j=0;j<8;j+=2)
 		{
@@ -596,25 +607,25 @@ static void * cmd_OLED096_test(cmdctrl_t *pCtrl)
 		
 	if(pCtrl->argc < 2)
 	{
-		printf("%s\r\n",pCtrl->pCmd->pTip);
+		DBG_TRACE("%s\r\n",pCtrl->pCmd->pTip);
 		return (void *) 1;
 	}
 
 	if(data == 0)
 	{
 		OLED096_init();
-		printf("OLED096_init ok!\r\n");
+		DBG_TRACE("OLED096_init ok!\r\n");
 	}
 	else
 	{
 		do{	
 			OLED096_full_test();
-			delay_timer_ms(500);
+			vTaskDelay(500);
 			OLED096_clear_test();
 			
 			shell_asyn_get_char(&pc_in);
 
-			delay_timer_ms(200);
+			vTaskDelay(200);
 		}while(pc_in != ESC);			
 	}
 
@@ -622,6 +633,8 @@ static void * cmd_OLED096_test(cmdctrl_t *pCtrl)
 	return (void *) 0;
 
 }
+
+#endif
 
 static const cmd_t sCmdTbl[] = {
 {"help","hp",cmd_help,2,HELP_TIP, HELP_HELP},

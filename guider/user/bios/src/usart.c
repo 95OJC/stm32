@@ -23,12 +23,9 @@
 static UARTINFO sUsartInfo;//用于上层传串口配置来底层
 static FIFO_CTRL_INFO sUsartCtrl;//用于指向上层定义的数组，然后指针操作读写数据,该文件的所有ringbuf.c的函数都需要用这个做参数传入，每次加入和读出后都需要流控检测
 
-static uint8_t *compiler_data = __DATE__;
-static uint8_t *compiler_time = __TIME__;
-
 void usart_sendString(u8 *str);
 
-/*rts模拟IO口，串口初始化配置填无流控(因为不是串口的硬件专门RTS，而是软件模拟IO的)，但是PC串口工具需填硬流控*/
+/* rts模拟IO口，串口初始化配置填无流控(因为不是串口的硬件专门RTS，而是软件模拟IO的)，但是PC串口工具需填硬流控 */
 static void usart_rts_io_init(void)
 {
     GPIO_InitTypeDef gpio_initStruct;
@@ -125,14 +122,20 @@ static BOOL usart_init(BUFINFO *pInfo,UARTINFO *usartInfo)
 	//使能串口
 	USART_Cmd(USART_NUM, ENABLE);
 
-	//usart_sendString("usart init success!\r\n");
-	printf("compiler time = %s,%s\r\n",compiler_data,compiler_time);
-	printf("file,fun,line = %s,%s,%d\r\n",__FILE__,__FUNCTION__,__LINE__);
+    //端口的活和连接
+    IF_SET_ACT(sUsartInfo.State);
+    IF_SET_CONNECT(sUsartInfo.State);
+
+	//端口的送、接收状态
+    IF_SET_TX_EMPTY(sUsartCtrl.tx_tag);
+	IF_CLS_RX_BUSY(sUsartCtrl.rx_tag);
+
+	usart_sendString("usart init success!\r\n");
 
 	return TRUE;
 }
 
-//发送一个字符，例如‘1’之类，填非字符乱码
+//发送一个字符，例如‘1’之类，填非字符乱码----对应针打at41的put_uart0函数
 void usart_sendByte(u8 ch)
 {
 	//向DR数据寄存器写入值清TXE位和清TC位(需先读SR的TC位)
@@ -156,6 +159,7 @@ void usart_sendString(u8 *str)
 
 }
 
+//返回一个十六进制的值，0x00~0xFF----对应针打at41的get_uart0函数
 u8 usart_getByte(void)
 {
 	while(USART_GetFlagStatus(USART_NUM,USART_FLAG_RXNE) == RESET);
@@ -285,7 +289,8 @@ static u32 read_usart(u8 *buf,u32 len)
 	return	i;
 }
 
-/*返回成功加入缓存的数据大小len，有可能小于len*/
+/*返回成功加入缓存的数据大小len，有可能小于len */
+//针打at41这里不是循环发送i个数据的，而是只发送1个数据，因此上层需要一直发送，直到len--为0
 static u32 write_usart(u8 *buf,u32 len)
 {
 	u32 i,j;
@@ -293,17 +298,23 @@ static u32 write_usart(u8 *buf,u32 len)
 	
 	i = data_q_in_more(&sUsartCtrl.tx,buf,len);//每次发送的len不能超过TxSize,除非上层有循环发送超过TxSize的len。
 	j = i;
-	
-	while(j)
+
+	if(IF_GET_TX_EMPTY(sUsartCtrl.tx_tag))
 	{
-		if(data_q_out(&sUsartCtrl.tx,&d))
+		IF_CLS_TX_EMPTY(sUsartCtrl.tx_tag);
+
+		while(j)
 		{
-			usart_sendByte(d);
+			if(data_q_out(&sUsartCtrl.tx,&d))
+			{
+				usart_sendByte(d);
+			}
+			
+			j--;
 		}
 		
-		j--;
+		IF_SET_TX_EMPTY(sUsartCtrl.tx_tag);
 	}
-
 	return i;
 }
 
@@ -331,9 +342,53 @@ static u32 peek_usart(u8 *buf, u32 len)
 /*控制或监控usart1的缓冲和缓存状态*/
 static BOOL io_ctrl_usart(IOCTRL_TYPE type,void *p)
 {
-	REG32(p) = 0;
+	BOOL ret = FALSE;
+	u32 n,d;
+	switch (type)
+		{
+			case IOCTRL_RX_DATA_SIZE:
+				n = get_data_q_size(&sUsartCtrl.rx);
+				REG32(p) = n;//给上层返回队列里的数据量
+				ret = TRUE;
+				break;
+
+			case IOCTRL_TX_DATA_SIZE:
+				n = get_data_q_size(&sUsartCtrl.tx);
+				REG32(p) = n;//给上层返回队列里的数据量
+				ret = TRUE;
+				break;
+
+			case IOCTRL_RESET_RX_BUF:
+				data_q_reset(&sUsartCtrl.rx);
+				IF_CLS_RX_BUSY(sUsartCtrl.rx_tag);
+				ret = TRUE;
+				break;
+
+			case IOCTRL_RESET_TX_BUF:
+				data_q_reset(&sUsartCtrl.tx);
+				IF_SET_TX_EMPTY(sUsartCtrl.tx_tag);
+				ret = TRUE;
+				break;
+
+			case IOCTRL_RESET_RT_BUF:
+				data_q_reset(&sUsartCtrl.rx);
+				IF_CLS_RX_BUSY(sUsartCtrl.rx_tag);
+				data_q_reset(&sUsartCtrl.tx);
+				IF_SET_TX_EMPTY(sUsartCtrl.tx_tag);
+				ret = TRUE;
+				break;
+
+			case IOCTRL_GET_PORT_STAT:
+				d = (sUsartInfo.State|sUsartCtrl.rx_tag|sUsartCtrl.tx_tag);
+				REG32(p) = d;
+				ret = TRUE;
+
+				break;
+			default:
+				break;
+		}
 	
-	return TRUE;
+	return ret;
 }
 
 void usart_driver_register(void)
@@ -363,6 +418,11 @@ int fputc(int ch, FILE *F)
 	return ch;
 }
 
+BOOL shell_port_init(BUFINFO *pBuf,void *pCtrl)
+{
+	return open_usart(pBuf,pCtrl);
+}
+
 void shell_usart_sendByte(u8 ch)
 {
 	write_usart(&ch,1);
@@ -382,8 +442,7 @@ u8 shell_usart_getByte(void)
 	
 	while(!read_usart(&d,1))
 	{
-		//定时器delay
-		//delay_timer_ms(5);
+		vTaskDelay(5);
 	}
 
 	return d;
@@ -402,5 +461,10 @@ BOOL shell_usart_asyn_getByte(u8 *byte)
 
 	return ret;
 }
+
+
+
+
+
 
 

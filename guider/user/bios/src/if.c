@@ -88,6 +88,32 @@ void if_register_driver(
 }
 
 
+PORT_NUM if_find_data_port(void)
+{
+    PORT_NUM port = NULL_PORT;
+    u8 i;
+    u32 n;
+    
+    for(i=0; i<MAX_DRIVER_NUM; i++)
+    {
+        if(!driver_tbl[i].valid || !(driver_tbl[i].tag & IF_OPEN_BIT))
+        {
+            continue;
+        }
+
+        driver_tbl[i].io_ctrl(IOCTRL_RX_DATA_SIZE,&n);
+        
+        if(n > 0)
+        {
+            port = (PORT_NUM)i;
+            break;
+        }
+    }
+    
+    return port;
+}
+
+
 BOOL if_open(PORT_NUM n, BUFINFO * pInfo, void *pCtrl)
 {
 	BOOL ret = FALSE;

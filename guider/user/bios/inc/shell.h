@@ -70,10 +70,10 @@ num = !0 (test)\r\n"
 num = 0  (init)\r\n\
 num = !0 (test)\r\n"
 
-#define	shell_send_char					shell_usart_sendByte//usart_sendByte
-#define	shell_send_string				shell_usart_sendString//usart_sendString
-#define	shell_get_char					shell_usart_getByte//usart_getByte
-#define shell_asyn_get_char(byte)		shell_usart_asyn_getByte(byte)//readByte,RX中断接收数据给到缓存，等待用户取
+#define	shell_send_char(ch)				shell_usart_sendByte(ch)//usart_sendByte
+#define	shell_send_string(str)			shell_usart_sendString(str)//usart_sendString
+#define	shell_get_char()				shell_usart_getByte()//usart_getByte
+#define shell_asyn_get_char(byte)		shell_usart_asyn_getByte(byte)//readByte,RX中断接收数据给到缓存，等待用户取,用于退出测试函数的do{}while()
 
 #endif//__shell_h
 

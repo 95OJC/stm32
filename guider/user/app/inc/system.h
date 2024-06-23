@@ -15,8 +15,8 @@
 
 
 typedef struct _SYS_POOL{
-	u8 sysExtRxBuf[SYS_RXBUF_LEN];				//数据接收缓冲
-	u8 sysExtTxBuf[SYS_TXBUF_LEN];				//数据发送缓存
+	u8 sysExtRxBuf[SYS_RXBUF_LEN];				//数据接收缓冲buf
+	u8 sysExtTxBuf[SYS_TXBUF_LEN];				//数据发送缓存cache
 	
 }SYS_POOL;
 

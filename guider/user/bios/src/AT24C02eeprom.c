@@ -35,7 +35,7 @@ DEV_STATUS eeprom_read(u32 readAddr, u8 *pBuffer)
 	return ret;
 }
 
-#if 1
+#if 0
 DEV_STATUS AT24C02eeprom_init(void)
 {
 	DEV_STATUS ret = DEV_OK;

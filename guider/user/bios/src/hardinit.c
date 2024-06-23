@@ -10,6 +10,37 @@
 //底层调用该函数初始化上层应用，只有进去该函数里面就是上层的世界了。
 //而上层想要调用底层函数，必须在biosApi.h声明底层函数，因为上层包含了该头文件，因此上层可以用(biosApi.h不需要被common.h包含，而是被lovgdev.h包含)。
 ------------------------------------------------------------------*/
+#if 1
+
+#define DEBUG 1
+
+#if (DEBUG && BIOS_DBG_EN)
+    #define DBG_TRACE(...) PRINTF(__VA_ARGS__)
+#else
+    #define DBG_TRACE(...)
+#endif
+
+static uint8_t *compiler_data = __DATE__;
+static uint8_t *compiler_time = __TIME__;
+
+void DevMain(void);
+int main(void)
+{	
+	//配置NVIC优先级分组为4（即7:4bit全部为抢占优先级），可以设置0~15优先级
+	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4);	
+
+	DBG_OPEN();
+	
+	DBG_TRACE("compiler time = %s,%s\r\n",compiler_data,compiler_time);
+	DBG_TRACE("file name = %s , fun name = %s , line number= %d\r\n",__FILE__,__FUNCTION__,__LINE__);
+
+	//初始化硬件 和 创建多任务启动
+	DevMain();
+
+	while(1);
+}
+
+#else
 static void OLED_normal_mode(void)
 {
 	OLED_ShowCHinese(0,0,5);//常
@@ -309,6 +340,7 @@ int main(void)
 	//}
 }
 
+#endif
 
 
 

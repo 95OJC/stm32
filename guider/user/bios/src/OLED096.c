@@ -334,7 +334,7 @@ void OLED_Init(void)
  	GPIO_Init(OLED_SCL_GPIO_Port, &GPIO_InitStructure);	  
  	GPIO_SetBits(OLED_SCL_GPIO_Port, OLED_SCL_Pin | OLED_SDA_Pin);	
 	
-	delay_timer_ms(800);
+	vTaskDelay(800);
 	OLED_WR_Byte(0xAE,OLED_CMD);//--display off
 	OLED_WR_Byte(0x00,OLED_CMD);//---set low column address
 	OLED_WR_Byte(0x10,OLED_CMD);//---set high column address
@@ -510,7 +510,7 @@ void OLED096_init(void)
     OLED096_IO_init();
     OLED096_config_init();
 
-	delay_timer_ms(10);
+	vTaskDelay(10);
 	OLED096_command_init();
 }
 

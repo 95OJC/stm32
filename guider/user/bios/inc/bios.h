@@ -17,11 +17,11 @@ typedef enum{
 #define	GET_DEV_MOED()			(gDevInfo.modeState) 
 
 //当前水温
-#define	SET_CUR_WATER_T(x)	{gDevInfo.cur_WaterT = (x);}
+#define	SET_CUR_WATER_T(x)		{gDevInfo.cur_WaterT = (x);}
 #define	GET_CUR_WATER_T()		(gDevInfo.cur_WaterT)
 
 //预设水温
-#define	SET_PRE_WATER_T(x)	{gDevInfo.preset_WaterT = (x);}
+#define	SET_PRE_WATER_T(x)		{gDevInfo.preset_WaterT = (x);}
 #define	GET_PRE_WATER_T()		(gDevInfo.preset_WaterT)	
 
 //水位状态
@@ -48,7 +48,16 @@ typedef struct _DEV_INFO
 
 
 extern DEV_INFO gDevInfo;
-extern void bios_dev_init(void);
+
+extern BOOL itemEnable(QITEM *item);
+
+extern MSG_STAT bios_dev_init(INIT_INFO *init);
+extern MSG_STAT bios_DCM_ctrl(DCM_INFO *dcm);
+extern MSG_STAT bios_heater_ctrl(HEATER_INFO *heater);
+extern MSG_STAT bios_tempAdd_ctrl(TEMP_ADD_INFO * tempAdd);
+extern MSG_STAT bios_tempReduce_ctrl(TEMP_REDUCE_INFO * tempReduce);
+
+
 
 #endif//__bios_h
 

@@ -11,22 +11,25 @@
 #include <string.h>//内存拷贝函数用到
 #include <stdio.h>//重定向函数用到
 #include <stdlib.h>//malloc()、free()等用到
-
-
+#include <stdarg.h>//debug的va_start等用到
 //底层的STM32库函数(硬件抽象层/底层，含映射寄存器及寄存器位宏定义)
 //u8、u6、u32定义在里面
 //包含了“stdint.h”这个头文件，可用uint16_t之类
 #include "stm32f10x.h"
 
-//底层的寄存器操作函数，外设地址没有结构体封装时候才用到！
-#include "regwrApi.h"
 
+/* FreeRTOS头文件 */
+#include "FreeRTOS.h"
+#include "task.h"
+#include "event_groups.h"
+
+
+#include "typedef.h"
 //上层和底层的公共服务定义(需要排列在底层的驱动函数前，确保底层的驱动函数(传参)能够找到该公共服务定义)
 #include "macro.h"
 //上层和底层公共的宏和结构体(需要排列在底层的驱动函数前，确保底层的驱动函数(传参)能够找到该宏和结构体)
 #include "pubdef.h"
-//宏开关
-#include "config.h"
+
 
 typedef enum{
 	DEV_ERR = 0,
@@ -34,6 +37,12 @@ typedef enum{
 	DEV_BUSY = 2,
 	DEV_TIMEOUT = 3
 }DEV_STATUS;
+	
+
+#include "config.h"//宏开关
+#include "debug.h"
+#include "regwrApi.h"//底层寄存器操作函数，外设地址没有结构体封装时候才用到
+
 
 //底层的驱动API
 #include "gpioApi.h"
@@ -52,7 +61,11 @@ typedef enum{
 #include "adda.h"
 
 
+//prnq任务
+#include "prnq.h"
 
+
+//智能饮水机
 #include "bios.h"
 #include "keyTTP224.h"//4键电容按键
 #include "WaterSensor.h"//水位传感器
@@ -60,7 +73,6 @@ typedef enum{
 #include "heater.h"//发热器+继电器
 #include "DS18B20.h"//温度传感器+单总线
 #include "OLED096.h"//OLED096屏幕
-
 
 
 #endif//__common_h
