@@ -1,5 +1,4 @@
 #include "common.h"
-#include "systick_rcc.h"
 
 /*-----------------------------------------------------------------
 验证rcc功能和mco功能、systick定时功能
@@ -143,8 +142,7 @@ void systick_init(void)
 	SysTick_Config(SYSTICK_UNIT_1MS);
 }
 
-/*
-//跑freertos时需要屏蔽该中断
+#if 0	//使用freertos时需要屏蔽
 void SysTick_Handler(void)
 {
 	static uint16_t count = 0;
@@ -154,6 +152,5 @@ void SysTick_Handler(void)
 		led_toggle();
 		count = 0;
 	}
-}*/
-
-
+}
+#endif

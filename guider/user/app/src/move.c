@@ -73,7 +73,6 @@ HWD DevInit(void)
 	qItem.dlyTime = 0;
 	qItem.dlyTimeReload = 0;
 	qItem.itemTag = ITEM_NORMAL;
-	//qItem.stat = ITEM_READY;
     Init.ctrl = 0x00;
     MEM_CPY(qItem.buf,&Init,sizeof(INIT_INFO));
     handle = SubmitItem(&qItem,NORMAL_PRIOR,WAIT_FOREVER);    

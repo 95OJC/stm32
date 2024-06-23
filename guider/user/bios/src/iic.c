@@ -1,5 +1,5 @@
 #include "common.h"
-#include "iic.h"
+
 
 /*-----------------------------------------------------------------
 该文件主要功能是验证iic。
@@ -227,8 +227,8 @@ DEV_STATUS iic_ByteRead(u8 device_addr, u32 readAddr, u8 *pBuffer)
 	return ret;
 }
 
-#if 0
 
+#if 1
 //100kHZ的iic速度，5us左右
 static void soft_delay(__IO uint32_t nCount)
 {

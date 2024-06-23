@@ -1,6 +1,6 @@
 #include "common.h"
 #include "main.h"
-#include "shell.h"
+
 
 /*-----------------------------------------------------------------
 shell功能(串口cmd)。
@@ -32,6 +32,80 @@ shell功能(串口cmd)。
 #else
     #define DBG_TRACE(...)
 #endif
+
+
+struct _cmd_t;//声明结构体
+
+#define	SHELL_MAX_ARGS	32
+#define	SHELL_ARGS_LEN	0x80
+typedef	struct _cmdctrl_t{
+	//cmd_t *pCmd;
+	struct _cmd_t *pCmd;		//指向对应sCmdTbl表，根据下面的buf、argv得到对应存在的表
+	u8 buf[SHELL_ARGS_LEN];		//接收的cmd+参数
+	u8 argc;					//cmd+参数的索引count	，最大为	SHELL_MAX_ARGS
+	u8 *argv[SHELL_MAX_ARGS];	//cmd+参数的内容,最多存SHELL_MAX_ARGS的cmd+参数+参数...
+}cmdctrl_t;
+
+typedef	void* (*cmd_func)(struct _cmdctrl_t *pctrl);
+
+typedef struct _cmd_t{
+	u8 *pFullName;
+	u8 *PshortName;
+	cmd_func func;	//调用sCmdTbl表的回调函数，输入sCmdctrl结构体作参数，就可以用所有shell输入参数及指针指向的内容
+	u8 bMaxArgs;
+	u8 *pTip;
+	u8 *pHelp;
+}cmd_t;
+
+#define	ENTER		0x0d//回车键
+#define	ESC			0x1b//ESC键
+#define	EXIT		0X30//数字0
+#define	SPACE		0x20//空格键
+#define	TAB			0x09//TAB
+#define	DEL			0x7f//删除
+#define	BACKSPACE	0x08//退格键
+#define	SEMICOLON	0x2c//逗号
+
+#define DEC 	0
+#define HEX 	1
+
+#define HELP_TIP			"help tip"
+#define	HELP_HELP			"help into"
+
+#define TTP224_TIP			"u8 num"
+#define	TTP224_HELP \
+"u8 num\r\n\
+num = 0  (init)\r\n\
+num = !0 (test)\r\n"
+
+#define WaterSensor_TIP		"u8 num"
+#define	WaterSensor_HELP \
+"u8 num\r\n\
+num = 0  (init)\r\n\
+num = !0 (test)\r\n"
+
+#define DS18B20_TIP			"u8 num"
+#define	DS18B20_HELP \
+"u8 num\r\n\
+num = 0  (init)\r\n\
+num = !0 (test)\r\n"
+
+#define OLED096_TIP			"u8 num"
+#define	OLED096_HELP \
+"u8 num\r\n\
+num = 0  (init)\r\n\
+num = !0 (test)\r\n"
+
+#define HEATER_TIP			"u8 num"
+#define	HEATER_HELP \
+"u8 num\r\n\
+num = 0  (init)\r\n\
+num = !0 (test)\r\n"
+
+#define	shell_send_char(ch)				shell_usart_sendByte(ch)//usart_sendByte
+#define	shell_send_string(str)			shell_usart_sendString(str)//usart_sendString
+#define	shell_get_char()				shell_usart_getByte()//usart_getByte
+#define shell_asyn_get_char(byte)		shell_usart_asyn_getByte(byte)//readByte,RX中断接收数据给到缓存，等待用户取,用于退出测试函数的do{}while()
 
 
 static cmdctrl_t sCmdctrl;
@@ -331,7 +405,7 @@ void shell_task(void *p)
 
 }
 
-#if 1
+
 static void * cmd_help(cmdctrl_t *pCtrl)
 {
 	cmd_t *pcmd;
@@ -372,278 +446,9 @@ static void * cmd_help(cmdctrl_t *pCtrl)
 	return (void *) 0;
 }
 
-static void * cmd_TTP224_test(cmdctrl_t *pCtrl)
-{
-	u8 data;
-	u8 pc_in;
-	u8 key_ret;
-	
-	
-	if(pCtrl->argc < 2)
-	{
-		DBG_TRACE("%s\r\n",pCtrl->pCmd->pTip);
-		return (void *) 1;
-	}
-	
-	data = (u8)string_2_integer(pCtrl->argv[1]);
-	
-	if(data == 0)
-	{
-		keyTTP224_init();
-		DBG_TRACE("TTP224_init ok!\r\n");
-	}
-	else
-	{
-		do{
-			key_ret = shell_keyTTP224_test();
-			if(key_ret)
-			{
-				if(key_ret == 1)
-					DBG_TRACE("1\r\n");
-				if(key_ret == 2)
-					DBG_TRACE("2\r\n");
-				if(key_ret == 3)
-					DBG_TRACE("3\r\n");
-				if(key_ret == 4)
-					DBG_TRACE("4\r\n");				
-			}
-			shell_asyn_get_char(&pc_in);
-			
-		}while(pc_in != ESC);
-	}
-	return (void *) 0;
-}
-
-static void * cmd_WaterSensor_test(cmdctrl_t *pCtrl)
-{
-	u8 data;
-	u8 pc_in;
-	u8 WS_ret;	
-	
-	if(pCtrl->argc < 2)
-	{
-		DBG_TRACE("%s\r\n",pCtrl->pCmd->pTip);
-		return (void *) 1;
-	}
-
-	data = (u8)string_2_integer(pCtrl->argv[1]);
-
-	if(data == 0)
-	{
-		WaterSensor_init();
-		DBG_TRACE("WaterSensor_init ok!\r\n");
-	}
-	else
-	{
-		do{	
-			WS_ret = WaterSensor_monitor();
-			if(WS_ret)
-			{
-				DBG_TRACE("有水!\r\n");
-			}
-			shell_asyn_get_char(&pc_in);
-
-		}while(pc_in != ESC);		
-	}
-
-	return (void *) 0;
-}
-
-static void * cmd_DCmotor_test(cmdctrl_t *pCtrl)
-{
-	u8 data;
-	
-	if(pCtrl->argc < 2)
-	{
-		DBG_TRACE("%s\r\n",pCtrl->pCmd->pTip);
-		return (void *) 1;
-	}
-
-	if(data == 0)
-	{
-		DCmotor_init();
-		DBG_TRACE("heater_init ok!\r\n");
-	}
-	else
-	{
-		DCmotor_toggle();
-		DBG_TRACE("出水/取消\r\n");
-	}
-
-	return (void *) 0;
-}
-
-static void * cmd_heater_test(cmdctrl_t *pCtrl)
-{
-	u8 data;
-	
-	if(pCtrl->argc < 2)
-	{
-		DBG_TRACE("%s\r\n",pCtrl->pCmd->pTip);
-		return (void *) 1;
-	}
-
-	if(data == 0)
-	{
-		heater_init();
-		DBG_TRACE("heater_init ok!\r\n");
-	}
-	else
-	{
-		heater_toggle();
-		DBG_TRACE("加热/常温\r\n");
-	}
-
-	return (void *) 0;
-}
-
-static void * cmd_DS18B20_test(cmdctrl_t *pCtrl)
-{
-	u8 data;
-	u8 pc_in;
-	u16 temp;
-	
-	if(pCtrl->argc < 2)
-	{
-		DBG_TRACE("%s\r\n",pCtrl->pCmd->pTip);
-		return (void *) 1;
-	}
-	
-	data = (u8)string_2_integer(pCtrl->argv[1]);
-	
-	if(data == 0)
-	{
-		DS18B20_init();
-		DBG_TRACE("DS18B20_init ok!\r\n");
-	}
-	else
-	{
-		do{	
-			temp = DS18B20_ReadTemperature();
-			DBG_TRACE("temp = %d\r\n",temp);
-			
-			shell_asyn_get_char(&pc_in);
-
-			vTaskDelay(200);
-		}while(pc_in != ESC);			
-	}
-
-	return (void *) 0;
-}
-
-static void * cmd_OLED096_test(cmdctrl_t *pCtrl)
-{
-#ifdef USE_OLED_LIB
-	u8 data;
-	u8 i,j;	
-	
-	if(pCtrl->argc < 2)
-	{
-		DBG_TRACE("%s\r\n",pCtrl->pCmd->pTip);
-		return (void *) 1;
-	}
-
-	data = (u8)string_2_integer(pCtrl->argv[1]);
-
-	if(data ==0)
-	{
-		OLED_Init();
-		DBG_TRACE("OLED_Init ok!\r\n");
-	}
-	else if(data == 1)//满屏8*16字符
-	{
-		for(j=0;j<8;j+=2)
-		{
-			for(i=0;i<128;i+=8)
-			{
-				OLED_ShowChar(i,j,'a',16);
-			}
-		}
-	}
-	else if(data == 2)//满屏6*8字符
-	{
-		for(j=0;j<8;j++)
-		{
-			for(i=0;i<=120;i+=6)
-			{
-				OLED_ShowChar(i,j,'a',12);
-			}
-		}
-	}
-	else if(data == 3)//满屏8*16数字
-	{
-		for(j=0;j<8;j+=2)
-		{
-			for(i=0;i<128;i+=16)
-			{
-				OLED_ShowNum(i,j,12,2,16);
-			}
-		}
-		
-		vTaskDelay(500);
-		
-		for(j=0;j<8;j+=2)
-		{
-			for(i=0;i<128;i+=8)
-			{
-				OLED_ShowNum(i,j,1,1,16);
-			}
-		}
-	}
-	else if(data == 4)//满屏16*16中文
-	{
-		for(j=0;j<8;j+=2)
-		{
-			for(i=0;i<128;i+=16)
-			{
-				OLED_ShowCHinese(i,j,0);
-			}
-		}
-	}
-	
-#else
-	u8 data;
-	u8 pc_in;
-		
-	if(pCtrl->argc < 2)
-	{
-		DBG_TRACE("%s\r\n",pCtrl->pCmd->pTip);
-		return (void *) 1;
-	}
-
-	if(data == 0)
-	{
-		OLED096_init();
-		DBG_TRACE("OLED096_init ok!\r\n");
-	}
-	else
-	{
-		do{	
-			OLED096_full_test();
-			vTaskDelay(500);
-			OLED096_clear_test();
-			
-			shell_asyn_get_char(&pc_in);
-
-			vTaskDelay(200);
-		}while(pc_in != ESC);			
-	}
-
-#endif
-	return (void *) 0;
-
-}
-
-#endif
 
 static const cmd_t sCmdTbl[] = {
 {"help","hp",cmd_help,2,HELP_TIP, HELP_HELP},
-{"TTP224","TTP224",cmd_TTP224_test,2,TTP224_TIP, TTP224_HELP},
-{"WaterSensor","WaterSensor",cmd_WaterSensor_test,2,WaterSensor_TIP, WaterSensor_HELP},
-{"heater","heater",cmd_DCmotor_test,2,HEATER_TIP, HEATER_HELP},
-{"heater","heater",cmd_heater_test,2,HEATER_TIP, HEATER_HELP},
-{"DS18B20","DS18B20",cmd_DS18B20_test,2,DS18B20_TIP, DS18B20_HELP},
-{"OLED096","OLED096",cmd_OLED096_test,2,OLED096_TIP, OLED096_HELP},
 {0,0,0,0,0,0},
 {0,0,0,0,0,0},
 {0,0,0,0,0,0}

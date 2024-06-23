@@ -1,7 +1,7 @@
 #ifndef __logdev_h
 #define	__logdev_h
 
-#include "typedef.h"
+
 #include "macro.h"
 #include "pubdef.h"
 #include "biosApi.h"

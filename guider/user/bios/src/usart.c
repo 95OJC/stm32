@@ -1,5 +1,5 @@
 #include "common.h"
-#include "usart.h"
+
 
 /*-----------------------------------------------------------------
 验证usart功能。
@@ -23,7 +23,6 @@
 static UARTINFO sUsartInfo;//用于上层传串口配置来底层
 static FIFO_CTRL_INFO sUsartCtrl;//用于指向上层定义的数组，然后指针操作读写数据,该文件的所有ringbuf.c的函数都需要用这个做参数传入，每次加入和读出后都需要流控检测
 
-void usart_sendString(u8 *str);
 
 /* rts模拟IO口，串口初始化配置填无流控(因为不是串口的硬件专门RTS，而是软件模拟IO的)，但是PC串口工具需填硬流控 */
 static void usart_rts_io_init(void)
@@ -31,7 +30,7 @@ static void usart_rts_io_init(void)
     GPIO_InitTypeDef gpio_initStruct;
     MEM_SET(&gpio_initStruct,0,sizeof(GPIO_InitTypeDef));
 
-	RCC_APB2PeriphClockCmd(USART_RTS_CLOCK_GPIOx,ENABLE);
+	USART_RTS_BUSx_CLOCK(USART_RTS_CLOCK,ENABLE);
 	
     gpio_initStruct.GPIO_Pin = USART_RTS_PIN;
     gpio_initStruct.GPIO_Mode = GPIO_Mode_Out_PP;
@@ -55,14 +54,13 @@ static void usart_rts_off(void)
 
 static void usart_gpio_init(void)
 {
-	//gpio初始化
 	GPIO_InitTypeDef gpio_initStruct;
     MEM_SET(&gpio_initStruct,0,sizeof(GPIO_InitTypeDef));
 
-	RCC_APB2PeriphClockCmd(USART_TX_CLOCK_GPIOx,ENABLE);
-	RCC_APB2PeriphClockCmd(USART_RX_CLOCK_GPIOx,ENABLE);
+	USART_TX_BUSx_CLOCK(USART_TX_CLOCK,ENABLE);
+	USART_RX_BUSx_CLOCK(USART_RX_CLOCK,ENABLE);
 
-	USART_APBx_CLOCK(USART_CLOCK,ENABLE);
+	USART_BUSx_CLOCK(USART_CLOCK,ENABLE);
 
 	gpio_initStruct.GPIO_Pin = USART_TX_PIN;
 	gpio_initStruct.GPIO_Mode = GPIO_Mode_AF_PP;//复用推挽输出
@@ -81,7 +79,6 @@ static void usart_gpio_init(void)
 
 static void usart_config_init(UARTINFO *usartInfo)
 {
-	//usart初始化
 	USART_InitTypeDef usart_initStruct;
 	MEM_SET(&usart_initStruct,0,sizeof(usart_initStruct));
 	
@@ -130,8 +127,6 @@ static BOOL usart_init(BUFINFO *pInfo,UARTINFO *usartInfo)
     IF_SET_TX_EMPTY(sUsartCtrl.tx_tag);
 	IF_CLS_RX_BUSY(sUsartCtrl.rx_tag);
 
-	usart_sendString("usart init success!\r\n");
-
 	return TRUE;
 }
 
@@ -167,7 +162,19 @@ u8 usart_getByte(void)
 	return (u8)USART_ReceiveData(USART_NUM);
 }
 
-void USART1_IRQHandler(void)
+/*重定向c库函数printf到串口，重定向后可上层和底层可使用printf函数*/
+int fputc(int ch, FILE *F)
+{
+	//发送一个字节到串口
+	USART_SendData(USART_NUM, (u8)ch);
+
+	//等待发送完毕
+	while(USART_GetFlagStatus(USART_NUM, USART_FLAG_TXE) == RESET); 
+
+	return ch;
+}
+
+void USART_IRQHandler_FUNC(void)
 {
 	u8 ucTemp;
 	
@@ -193,58 +200,6 @@ void USART1_IRQHandler(void)
 
 }
 
-//void Delay_ojc(__IO uint32_t nCount);
-void USART2_IRQHandler(void)
-{
-	u8 ucTemp;
-	//led_toggle();
-	if(USART_GetITStatus(USART_NUM,USART_IT_RXNE)!=RESET)
-	{
-		//USART_ReceiveData函数读取DR寄存器数据后,硬件自动清RXNE标志位(所以这里不需要清中断标志位),然后才可继续接收下一个字节
-		ucTemp = USART_ReceiveData(USART_NUM);
-
-#if 1
-		data_q_in(&sUsartCtrl.rx,ucTemp);
-#else
-		data_q_in_more(&sUsartCtrl.rx,&ucTemp,1);
-#endif
-		if(data_q_near_full(&sUsartCtrl.rx))
-		{
-			#if 0	//置软流控，会丢数，暂时不知道原因,硬件关系还是寄存器配置？
-			usart_sendByte(0x13);
-			#else	//置硬流控
-			usart_rts_off();
-			#endif
-		}
-	}
-	//led_toggle();
-}
-
-void USART3_IRQHandler(void)
-{
-	u8 ucTemp;
-	
-	if(USART_GetITStatus(USART_NUM,USART_IT_RXNE)!=RESET)
-	{
-		//USART_ReceiveData函数读取DR寄存器数据后,硬件自动清RXNE标志位(所以这里不需要清中断标志位),然后才可继续接收下一个字节
-		ucTemp = USART_ReceiveData(USART_NUM);
-
-#if 1
-		data_q_in(&sUsartCtrl.rx,ucTemp);
-#else
-		data_q_in_more(&sUsartCtrl.rx,&ucTemp,1);
-#endif
-		if(data_q_near_full(&sUsartCtrl.rx))
-		{
-			#if 0	//置软流控，会丢数，暂时不知道原因,硬件关系还是寄存器配置？
-			usart_sendByte(0x13);
-			#else	//置硬流控
-			usart_rts_off();
-			#endif
-		}
-	}
-
-}
 
 #if 1	//调用if文件的固定格式
 static BOOL open_usart(BUFINFO *pInfo, void *uInfo)
@@ -406,19 +361,7 @@ void usart_driver_register(void)
 
 #endif
 
-/*重定向c库函数printf到串口，重定向后可上层和底层可使用printf函数*/
-int fputc(int ch, FILE *F)
-{
-	//发送一个字节到串口
-	USART_SendData(USART_NUM, (u8)ch);
-
-	//等待发送完毕
-	while(USART_GetFlagStatus(USART_NUM, USART_FLAG_TXE) == RESET); 
-
-	return ch;
-}
-
-BOOL shell_port_init(BUFINFO *pBuf,void *pCtrl)
+BOOL debug_usart_init(BUFINFO *pBuf,void *pCtrl)
 {
 	return open_usart(pBuf,pCtrl);
 }

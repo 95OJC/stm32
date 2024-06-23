@@ -112,7 +112,7 @@ HWD submit_item(QITEM *item, u8 prior)
 #else
 
 			//已经有面板item项了，不能提交面板item项，需等待运行完成才能提交
-			//上层需要判断是否提交成功，重复提交才行
+			//目前上层需要重复提交，然后重复判断是否提交成功
 			return NULL;
 #endif
 		}
@@ -232,21 +232,6 @@ static BOOL release_prnq_item(QITEM *item, ITEM_STAT s)
 			MEM_SET(&pInfo->init, 0, sizeof(INIT_INFO));
 			break;
 		
-		case DCM_MSG:
-			MEM_SET(&pInfo->dcm, 0, sizeof(DCM_INFO));
-			break;
-		
-		case HEATER_MSG:
-			MEM_SET(&pInfo->heater, 0, sizeof(HEATER_INFO));
-			break;
-			
-		case TEMP_ADD_MSG:
-			MEM_SET(&pInfo->tempAdd, 0, sizeof(TEMP_ADD_INFO));
-			break;
-			
-		case TEMP_REDUCE_MSG:
-			MEM_SET(&pInfo->tempReduce, 0, sizeof(TEMP_REDUCE_INFO));
-			break;
 			
 		default :
 			break;
@@ -440,73 +425,6 @@ static ITEM_STAT prnq_dispatch(QITEM *item)
 				}
 				break;
 
-			case DCM_MSG:
-				pInfo->dcm.ctrl |= itemTag_ctrl;
-				while(1)
-				{
-					r = bios_DCM_ctrl(&pInfo->dcm);
-					if(r == RUN_OK || r == RUN_ERR)
-					{
-						break;
-					}
-					else//r == RUNNING
-					{
-						vTaskDelay(5);
-					}
-				
-				}
-				break;
-
-			case HEATER_MSG:
-				pInfo->heater.ctrl |= itemTag_ctrl;
-				while(1)
-				{
-					r = bios_heater_ctrl(&pInfo->heater);
-					if(r == RUN_OK || r == RUN_ERR)
-					{
-						break;
-					}
-					else//r == RUNNING
-					{
-						vTaskDelay(5);
-					}
-				
-				}			
-				break;
-
-			case TEMP_ADD_MSG:
-				pInfo->tempAdd.ctrl |= itemTag_ctrl;
-				while(1)
-				{
-					r = bios_tempAdd_ctrl(&pInfo->tempAdd);
-					if(r == RUN_OK || r == RUN_ERR)
-					{
-						break;
-					}
-					else//r == RUNNING
-					{
-						vTaskDelay(5);
-					}
-				
-				}						
-				break;
-
-			case TEMP_REDUCE_MSG:
-				pInfo->tempReduce.ctrl |= itemTag_ctrl;
-				while(1)
-				{
-					r = bios_tempReduce_ctrl(&pInfo->tempReduce);
-					if(r == RUN_OK || r == RUN_ERR)
-					{
-						break;
-					}
-					else//r == RUNNING
-					{
-						vTaskDelay(5);
-					}
-				
-				}			
-				break;
 
 			default:
 				r = RUN_OK;

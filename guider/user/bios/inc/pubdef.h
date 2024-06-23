@@ -33,10 +33,7 @@ typedef enum
 {
 	NO_MSG,				/*< NO MSG */
 	INIT_MSG,			/*< 初始化 */
-	DCM_MSG,			/*< 水泵电机 */
-	HEATER_MSG,			/*< 加热器 */
-	TEMP_ADD_MSG,		/*< 温度加 */
-	TEMP_REDUCE_MSG		/*< 温度减 */
+
 }MSG_TYPE;
 
 
@@ -46,42 +43,14 @@ typedef enum
 //这些动作/模块的MSG_INFO结构体，目前里面都只有ctrl(用于联动QITEM.itemTag来控制item项的动作/模块)，还可以添加一些变量或者指针等
 typedef struct
 {
-	u32 ctrl;
+	u32 	ctrl;
 }INIT_INFO;
 
-typedef struct
-{
-	u32 ctrl;
-	BOOL state;
-	CallBackFunc userFunc;//可每步都执行的回调函数
-}DCM_INFO;
-
-typedef struct
-{
-	u32 ctrl;
-	BOOL state;
-	u8 heat_temp;
-}HEATER_INFO;
-
-typedef struct
-{
-	u32 ctrl;
-	u8 temp;
-}TEMP_ADD_INFO;
-
-typedef struct
-{
-	u32 ctrl;
-	u8 temp;
-}TEMP_REDUCE_INFO;
 
 typedef union
 {
-	INIT_INFO			init;
-	DCM_INFO			dcm;
-	HEATER_INFO			heater;
-	TEMP_ADD_INFO		tempAdd;
-	TEMP_REDUCE_INFO	tempReduce;
+	INIT_INFO	init;
+
 }MSG_INFO;
 
 

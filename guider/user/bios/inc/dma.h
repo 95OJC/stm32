@@ -1,22 +1,61 @@
 #ifndef __dma_h
 #define	__dma_h
 
-/*usart dma*/
-#define	DMA_NVIC_IRQN					DMA1_Channel5_IRQn
-#define	DMA_NVIC_PRIO					0x02
+typedef struct _DMACTRL
+{
+	u32 PeripheralBaseAddr;
+	u32 MemoryBaseAddr;
+	u32 DIR; 
+	u32 BufferSize;
+	u32 PeripheralInc;
+	u32 MemoryInc;
+	u32 PeripheralDataSize;
+	u32 MemoryDataSize;
+	u32 Mode;
+	u32 Priority;
+	u32 M2M;
+}DMACTRL;
 
-#define	DMA_AHB_CLOCK(x,s)				RCC_AHBPeriphClockCmd(x,s)	//dma时钟fun
-#define	DMA_PERIPHERAL_REQ_FUN(p,q,s)	USART_DMACmd(p,q,s)			//dma外设请求fun
 
-#define	DMA_TX_CLOCK					RCC_AHBPeriph_DMA1			//dma时钟
-#define	DMAy_TX_CHANNELx				DMA1_Channel4				//dma外设通道
-#define	DMA_PERIPHERAL_TXNUM			USART1						//dma外设
-#define	DMA_PERIPHERAL_TXREQ			USART_DMAReq_Tx				//dma外设请求
+typedef enum 
+{
+	M2P_USART 	= 0,
+	M2P_TIM		= 1,	
+	M2P_ADC		= 2,
+	M2P_DAC		= 3,
+	M2P_IIC		= 4,
+	M2P_SPI		= 5,
 
-#define	DMA_RX_CLOCK					RCC_AHBPeriph_DMA1			//dma时钟
-#define	DMAy_RX_CHANNELx				DMA1_Channel5				//dma外设通道
-#define	DMA_PERIPHERAL_RXNUM			USART1						//dma外设
-#define	DMA_PERIPHERAL_RXREQ			USART_DMAReq_Rx				//dma外设请求	
+}DMA_M2P_per;
+
+typedef enum 
+{
+	P2M_USART 	= 0,
+	P2M_TIM		= 1,	
+	P2M_ADC		= 2,
+	P2M_DAC		= 3,
+	P2M_IIC		= 4,
+	P2M_SPI		= 5,
+
+}DMA_P2M_per;
+
+BOOL dma_m2m_init(DMACTRL *dmaInfo);
+void dma_m2m_test(void);
+
+BOOL dma_m2m_interrupt_init(DMACTRL *dmaInfo);
+void dma_m2m_interrupt_test(void);
+
+BOOL dma_m2p_init(DMACTRL *dmaInfo, DMA_M2P_per per);
+void dma_m2p_test(DMA_M2P_per per);
+
+BOOL dma_m2p_interrupt_init(DMACTRL *dmaInfo, DMA_M2P_per per);
+void dma_m2p_interrupt_test(DMA_M2P_per per);
+
+BOOL dma_p2m_init(DMACTRL *dmaInfo, DMA_P2M_per per);
+void dma_p2m_test(DMA_P2M_per per);
+
+BOOL dma_p2m_interrupt_init(DMACTRL *dmaInfo, DMA_P2M_per per);
+void dma_p2m_interrupt_test(DMA_P2M_per per);
 
 
 #endif//__dma_h

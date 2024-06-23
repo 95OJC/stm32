@@ -1,5 +1,5 @@
 #include "common.h"
-#include "timer.h"
+
 
 /*-----------------------------------------------------------------
 验证timer功能。
@@ -14,13 +14,13 @@
 
 void basic_timer_init(void)
 {
+	TIM_TimeBaseInitTypeDef basicTimer_initStruct;
+	
 	NVIC_ClearPendingIRQ(TIMER_NVIC_IRQN);
 	NVIC_SetPriority(TIMER_NVIC_IRQN,TIMER_NVIC_PRIO);
 	NVIC_EnableIRQ(TIMER_NVIC_IRQN);
 
-	TIM_TimeBaseInitTypeDef basicTimer_initStruct;
-	
-	RCC_APB1PeriphClockCmd(TIMER_CLOCK, ENABLE);
+	TIMER_BUSx_CLOCK(TIMER_CLOCK, ENABLE);
 
 	basicTimer_initStruct.TIM_Period = TIMER_PERIOD_COUNT;//重装载值
 	basicTimer_initStruct.TIM_Prescaler = TIMER_PRESCALER;//预分频器：定时器时钟
@@ -46,7 +46,7 @@ void delay_timer_ms(u32 ms)
 	
 	TIM_TimeBaseInitTypeDef basicTimer_initStruct;
 	
-	RCC_APB1PeriphClockCmd(TIMER_CLOCK, ENABLE);
+	TIMER_BUSx_CLOCK(TIMER_CLOCK, ENABLE);
 	
 	basicTimer_initStruct.TIM_Period = ((72-1)*ms);//重装载值
 	basicTimer_initStruct.TIM_Prescaler = (1000-1);//预分频器：定时器时钟
@@ -70,7 +70,7 @@ void delay_timer_us(u32 us)
 	
 	TIM_TimeBaseInitTypeDef basicTimer_initStruct;
 	
-	RCC_APB1PeriphClockCmd(TIMER_CLOCK, ENABLE);
+	TIMER_BUSx_CLOCK(TIMER_CLOCK, ENABLE);
 	
 	basicTimer_initStruct.TIM_Period = ((72-1)*us);//重装载值
 	basicTimer_initStruct.TIM_Prescaler = (1-1);//预分频器：定时器时钟
@@ -85,7 +85,7 @@ void delay_timer_us(u32 us)
 	TIM_Cmd(TIMER_NUM,DISABLE);
 }
 
-void TIM6_IRQHandler(void)
+void TIMER_IRQHandler_FUNC(void)
 {
 	static uint16_t cnt = 0;
 	if (TIM_GetITStatus(TIMER_NUM,TIM_IT_Update) != RESET)
@@ -101,19 +101,7 @@ void TIM6_IRQHandler(void)
 		
 }
 
-void TIM7_IRQHandler(void)
+void basic_timer_test(void)
 {
-	static uint16_t cnt = 0;
-	if (TIM_GetITStatus(TIMER_NUM,TIM_IT_Update) != RESET)
-	{
-		cnt++;
-		if(cnt == TIMER_INT_CNT)
-		{
-			led_toggle();
-			cnt = 0;
-		}
-		TIM_ClearITPendingBit(TIMER_NUM,TIM_FLAG_Update);  
-	}
-		
+	basic_timer_init();
 }
-

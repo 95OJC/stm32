@@ -46,7 +46,7 @@ u32 bios_get_data_cnt(u8 m);
 #define BIOS_FIND_DPORT()           if_find_data_port()
 
 /* ╤сап */
-#define	BIOS_PRNQ_TASK				prnq_task
+#define	BIOS_PRNQ_TASK					prnq_task
 #define BIOS_SUBMIT_ITEM_MSG(item,p)	submit_item(item,p)
 #define BIOS_CHECK_ITEM_STATUS(h)   	check_msg_status(h)
 #define BIOS_GET_PRNQ_STAT()        	get_prnq_status()

@@ -1,6 +1,8 @@
 #include "common.h"
-#include "AT24C02eeprom.h"
 
+
+/** EEPROM Æ÷¼þµØÖ· */
+#define EEPROM_ID       0xA0
 
 DEV_STATUS eeprom_init(void)
 {
@@ -35,7 +37,7 @@ DEV_STATUS eeprom_read(u32 readAddr, u8 *pBuffer)
 	return ret;
 }
 
-#if 0
+#if 1
 DEV_STATUS AT24C02eeprom_init(void)
 {
 	DEV_STATUS ret = DEV_OK;

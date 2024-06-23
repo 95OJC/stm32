@@ -22,6 +22,10 @@
 #endif
 
 
+typedef void *HWD;
+typedef void *(*CallBackFunc)(void *p);
+
+
 #define	ARRAY_SIZE(x)				(sizeof(x)/sizeof((x)[0]))
 #define	BIT_CLR(x,bit)				{(x) &= ~ (1 << (bit));}
 #define	BIT_SET(x,bit)				{(x) |= (1 << (bit));}

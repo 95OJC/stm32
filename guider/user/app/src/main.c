@@ -62,7 +62,7 @@ static TaskHandle_t ConsoleHandle;
 //初始化emul任务的接受数据的结构体全局变量索引
 static void systemInit(void)
 {
-	//BIOS_INIT();//先屏蔽，因为板子没有接模块
+	BIOS_INIT();
 	CLS_BUSY_STATE();
 }
 

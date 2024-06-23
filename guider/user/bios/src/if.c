@@ -1,5 +1,5 @@
 #include "common.h"
-#include "if.h"
+
 
 /*-----------------------------------------------------------------
 实现通讯接口分层的功能，使底层和上层通讯接口函数分开：
@@ -44,6 +44,18 @@ static const cmd_t sCmdTbl[] = {
 ------------------------------------------------------------------*/
 
 #define	MAX_DRIVER_NUM	10
+#define IF_OPEN_BIT     0x01
+
+typedef struct{
+	BOOL valid;//端口是否有效，外设端口注册后有效,有效才能if_open
+	BOOL (*open)(BUFINFO *pInfo, void *pCtrl);
+	BOOL (*close)(void);
+	u32  (*read)(u8 *buf, u32 len);
+	u32  (*write)(u8 *buf, u32 len);
+	u32  (*peek)(u8 *buf,u32 len);
+	BOOL  (*io_ctrl)(IOCTRL_TYPE type, void *ctrl);
+	BOOL tag;//端口是否打开，if_open置true/if_close置false ,true时才能if_set_port
+}IF_DRIVER;
 
 static IF_DRIVER driver_tbl[MAX_DRIVER_NUM];//该结构体选数组下标，给外部赋值
 static IF_DRIVER *pCurrentDriver;//该结构体给内部赋值，选择当前通讯口

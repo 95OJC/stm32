@@ -3,13 +3,6 @@
 
 static char va_buf[0x100];
 
-#define	debug_port_init(pBuf,pCtrl)		shell_port_init(pBuf,pCtrl)//usart_sendByte
-#define	debug_send_char(ch)				shell_usart_sendByte(ch)//usart_sendByte
-//#define	debug_send_string(str)			shell_usart_sendString(str)//usart_sendString
-//#define	debug_get_char()				shell_usart_getByte()//usart_getByte
-//#define 	debug_asyn_get_char(byte)		shell_usart_asyn_getByte(byte)//readByte,RX中断接收数据给到缓存，等待用户取
-
-
 void debug_open(void)
 {
 	static u8 DBGTxBuf[0x1000];
@@ -34,9 +27,9 @@ void debug_open(void)
 	uInfo.Ctrl.Flw = USART_HardwareFlowControl_None;
 	uInfo.Ctrl.Mode = USART_Mode_Rx | USART_Mode_Tx;;
 
-	debug_port_init(&pBuf,&uInfo);
+	debug_usart_init(&pBuf,&uInfo);
 
-	PRINTF("111111111111111111111111111111111");
+	PRINTF("111111111111111111111111111111111\r\n");
 
 
 }
@@ -52,7 +45,7 @@ void debug_out(char *fmt,...)
     
     for(i=0; i<n; i++)
     {
-    	debug_send_char(va_buf[i]);
+    	shell_usart_sendByte(va_buf[i]);
     }
 }
 

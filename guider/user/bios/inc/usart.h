@@ -1,54 +1,14 @@
 #ifndef __uart_h
 #define	__uart_h
 
-#if 1
-//nvic
-#define	USART_NVIC_IRQN				USART1_IRQn
-#define	USART_NVIC_PRIO				0x01
-
-//usart
-#define	USART_NUM					USART1
-#define	USART_APBx_CLOCK(x,s)		RCC_APB2PeriphClockCmd(x,s)
-#define	USART_CLOCK					RCC_APB2Periph_USART1
-
-#define	USART_TX_APBx_CLOCK(x,s)	RCC_APB2PeriphClockCmd(x,s)
-#define	USART_TX_CLOCK_GPIOx		RCC_APB2Periph_GPIOA
-#define USART_TX_GPIO				GPIOA
-#define USART_TX_PIN				GPIO_Pin_9
-
-#define	USART_RX_APBx_CLOCK(x,s)	RCC_APB2PeriphClockCmd(x,s)
-#define	USART_RX_CLOCK_GPIOx		RCC_APB2Periph_GPIOA
-#define USART_RX_GPIO				GPIOA
-#define USART_RX_PIN				GPIO_Pin_10
-
-#else
-//nvic
-#define	USART_NVIC_IRQN				USART2_IRQn
-#define	USART_NVIC_PRIO				0x01
-
-//usart
-#define	USART_NUM					USART2
-#define	USART_APBx_CLOCK(x,s)		RCC_APB1PeriphClockCmd(x,s)
-#define	USART_CLOCK					RCC_APB1Periph_USART2
-
-#define	USART_TX_APBx_CLOCK(x,s)	RCC_APB2PeriphClockCmd(x,s)
-#define	USART_TX_CLOCK_GPIOx		RCC_APB2Periph_GPIOA
-#define USART_TX_GPIO				GPIOA
-#define USART_TX_PIN				GPIO_Pin_2
-
-#define	USART_RX_APBx_CLOCK(x,s)	RCC_APB2PeriphClockCmd(x,s)
-#define	USART_RX_CLOCK_GPIOx		RCC_APB2Periph_GPIOA
-#define USART_RX_GPIO				GPIOA
-#define USART_RX_PIN				GPIO_Pin_3
-
-#endif
+BOOL debug_usart_init(BUFINFO *pBuf,void *pCtrl);
+void shell_usart_sendByte(u8 ch);
+void shell_usart_sendString(u8 *str);
+u8 shell_usart_getByte(void);
+BOOL shell_usart_asyn_getByte(u8 *byte);
 
 
-//Á÷¿ØÄ£Äâio
-#define	USART_RTS_APBx_CLOCK(x,s)	RCC_APB2PeriphClockCmd(x,s)
-#define	USART_RTS_CLOCK_GPIOx		RCC_APB2Periph_GPIOC//RCC_APB2Periph_GPIOB
-#define USART_RTS_GPIO				GPIOC//GPIOB
-#define USART_RTS_PIN				GPIO_Pin_7//GPIO_Pin_6
+void usart_driver_register(void);
 
 
 #endif//__uart_h

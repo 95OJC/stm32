@@ -5,7 +5,9 @@
 #include <string.h>//内存拷贝函数用到
 #include <stdio.h>//重定向函数用到
 #include <stdlib.h>//malloc()、free()等用到
-//为了上层可以给底层配置外设参数
+
+
+//为了上层可以给底层配置外设参数（不需要在上层再次重复定义配置外设参数）
 //u8、u6、u32定义在里面
 //包含了“stdint.h”这个头文件，可用uint16_t之类
 #include "stm32f10x.h"
