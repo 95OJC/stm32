@@ -39,8 +39,6 @@ typedef enum{
 	DEV_BUSY = 2,
 	DEV_TIMEOUT = 3
 }DEV_STATUS;
-	
-
 #include "config.h"
 #include "gpio.h"
 #include "systick_rcc.h"
@@ -54,7 +52,7 @@ typedef enum{
 #include "spi.h"
 #include "AT24C02eeprom.h"
 #include "W25Q64flash.h"
-
+#include "pwm.h"
 
 #include "debug.h"
 #include "shell.h"

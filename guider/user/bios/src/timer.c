@@ -11,32 +11,6 @@
 4、使能定时器。
 5、编写中断服务函数。
 ------------------------------------------------------------------*/
-
-void basic_timer_init(void)
-{
-	TIM_TimeBaseInitTypeDef basicTimer_initStruct;
-	
-	NVIC_ClearPendingIRQ(TIMER_NVIC_IRQN);
-	NVIC_SetPriority(TIMER_NVIC_IRQN,TIMER_NVIC_PRIO);
-	NVIC_EnableIRQ(TIMER_NVIC_IRQN);
-
-	TIMER_BUSx_CLOCK(TIMER_CLOCK, ENABLE);
-
-	basicTimer_initStruct.TIM_Period = TIMER_PERIOD_COUNT;//重装载值
-	basicTimer_initStruct.TIM_Prescaler = TIMER_PRESCALER;//预分频器：定时器时钟
-	TIM_TimeBaseInit(TIMER_NUM,&basicTimer_initStruct);
-
-	//清楚计数器中断标志位
-    TIM_ClearFlag(TIMER_NUM,TIM_FLAG_Update);
-
-	//开启计数器中断
-	TIM_ITConfig(TIMER_NUM,TIM_IT_Update,ENABLE);
-
-	//使能计数器
-	TIM_Cmd(TIMER_NUM,ENABLE);	
-	
-}
-
 void delay_timer_ms(u32 ms)
 {
 	if(ms > 500)
@@ -83,6 +57,31 @@ void delay_timer_us(u32 us)
 	while(!TIM_GetFlagStatus(TIMER_NUM,TIM_FLAG_Update));
 	//关闭定时器
 	TIM_Cmd(TIMER_NUM,DISABLE);
+}
+
+void basic_timer_init(void)
+{
+	TIM_TimeBaseInitTypeDef basicTimer_initStruct;
+	
+	NVIC_ClearPendingIRQ(TIMER_NVIC_IRQN);
+	NVIC_SetPriority(TIMER_NVIC_IRQN,TIMER_NVIC_PRIO);
+	NVIC_EnableIRQ(TIMER_NVIC_IRQN);
+
+	TIMER_BUSx_CLOCK(TIMER_CLOCK, ENABLE);
+
+	basicTimer_initStruct.TIM_Period = TIMER_PERIOD_COUNT;//重装载值
+	basicTimer_initStruct.TIM_Prescaler = TIMER_PRESCALER;//预分频器：定时器时钟
+	TIM_TimeBaseInit(TIMER_NUM,&basicTimer_initStruct);
+
+	//清楚计数器中断标志位
+    TIM_ClearFlag(TIMER_NUM,TIM_FLAG_Update);
+
+	//开启计数器中断
+	TIM_ITConfig(TIMER_NUM,TIM_IT_Update,ENABLE);
+
+	//使能计数器
+	TIM_Cmd(TIMER_NUM,ENABLE);	
+	
 }
 
 void TIMER_IRQHandler_FUNC(void)

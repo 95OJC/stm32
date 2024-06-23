@@ -37,6 +37,10 @@ int main(void)
 	DevMain();//初始化硬件和创建多任务启动
 #endif
 
+#if 1
+	pwm_test();
+#endif
+
 #if 0
 	//SleepMode_test();
 	//StopMode_test();

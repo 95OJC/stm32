@@ -202,6 +202,25 @@
 
 #define	SPI_NUM							SPI1
 
+/***********************************pwm****************************************/
+#define	PWM_GPIO_BUSx_CLOCK(r,s)		RCC_APB2PeriphClockCmd(r,s)
+#define	PWM_GPIO_CLOCK					(RCC_APB2Periph_GPIOB|RCC_APB2Periph_AFIO)
+#define PWM_GPIO_REMAP_FUN()			GPIO_PinRemapConfig(GPIO_PartialRemap_TIM3, ENABLE) 
+#define PWM_GPIO_RED_PORT               GPIOB
+#define PWM_GPIO_RED_PIN                GPIO_Pin_5
+#define PWM_GPIO_GREEN_PORT             GPIOB
+#define PWM_GPIO_GREEN_PIN              GPIO_Pin_0
+#define PWM_GPIO_BULE_PORT              GPIOB
+#define PWM_GPIO_BLUE_PIN               GPIO_Pin_1
+
+#define	PWM_TIMER_BUSx_CLOCK(x,s)		RCC_APB1PeriphClockCmd(x,s)
+#define PWM_TIMER_CLOCK					RCC_APB1Periph_TIM3
+#define	PWM_TIMER_NUM					TIM3
+#define	PWM_TIMER_PERIOD_COUNT			(256 - 1)//´ÎÊý
+#define	PWM_TIMER_PRESCALER				(2000 - 1)//·ÖÆµ
+
+
+
 
 /***********************************macro config****************************************/
 #define	USE_OLED_LIB
