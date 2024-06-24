@@ -56,6 +56,8 @@ void SystemClock_Config(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 extern UART_HandleTypeDef huart1;
+unsigned char usart1_str[]="usart1_ojc";//写入的字符串
+uint8_t usart1_ReadBuffer[50];//读取缓存区
 
 //KEY1和KEY2中断回调函数
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
@@ -68,6 +70,18 @@ int fputc(int ch,FILE *f)
 {
 	HAL_UART_Transmit(&huart1,(uint8_t*)&ch,1,1000);
 	return ch;
+}
+
+//串口发送中断没有产生(为什么？)，所以该回调函数也没有产生！
+void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
+{
+	printf("HAL_UART_TxCpltCallback\r\n");
+}
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+	printf("ReadBuffer = %s\r\n",usart1_ReadBuffer);
+	HAL_UART_Receive_IT(&huart1,usart1_ReadBuffer,1);
 }
 
 /* USER CODE END 0 */
@@ -103,6 +117,8 @@ int main(void)
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
 	printf("Start usart1 TX and RX...\r\n");
+	HAL_UART_Transmit(&huart1,usart1_str,sizeof(usart1_str),1000);
+	HAL_UART_Receive_IT(&huart1,usart1_ReadBuffer,1);//执行该函数后，先产生中断，然后在RX中断完成回调函数里继续执行该函数
   /* USER CODE END 2 */
 
   /* Infinite loop */
