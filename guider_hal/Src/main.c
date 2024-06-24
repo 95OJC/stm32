@@ -18,6 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "dma.h"
 #include "spi.h"
 #include "usart.h"
 #include "gpio.h"
@@ -71,11 +72,13 @@ int fputc(int ch,FILE *f)
 	return ch;
 }
 
+//	IT/DMA发送完成回调函数
 void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi)
 {
 	printf("HAL_SPI_TxCpltCallback\r\n");
 }
 
+//	IT/DMA接收完成回调函数
 void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi)
 {
 	printf("HAL_SPI_RxCpltCallback\r\n");
@@ -110,6 +113,7 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_USART1_UART_Init();
   MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
