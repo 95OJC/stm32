@@ -18,6 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "dma.h"
 #include "usart.h"
 #include "gpio.h"
 
@@ -72,18 +73,12 @@ int fputc(int ch,FILE *f)
 	return ch;
 }
 
-//串口发送中断没有产生(为什么？)，所以该回调函数也没有产生！
-void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
-{
-	printf("HAL_UART_TxCpltCallback\r\n");
-}
-
+//DMA接收中断完成回调函数与串口接收中断完成回调函数一样，因为在HAL_DMA接收中断完成回调函数里面调用了这个
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
+	//HAL_UART_Receive_DMA(&huart1,usart1_ReadBuffer,1);//如果没有启动循环模式，就需要添加这句
 	printf("ReadBuffer = %s\r\n",usart1_ReadBuffer);
-	HAL_UART_Receive_IT(&huart1,usart1_ReadBuffer,1);
 }
-
 /* USER CODE END 0 */
 
 /**
@@ -114,11 +109,14 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
 	printf("Start usart1 TX and RX...\r\n");
-	HAL_UART_Transmit(&huart1,usart1_str,sizeof(usart1_str),1000);
-	HAL_UART_Receive_IT(&huart1,usart1_ReadBuffer,1);//执行该函数后，先产生中断，然后在RX中断完成回调函数里继续执行该函数
+	HAL_UART_Transmit_DMA(&huart1,usart1_str,sizeof(usart1_str));
+	
+	//需要配合串口空闲中断，才知道DMA什么时候结束传输，同时接收一包的数据需要小于程序设置接收一包DMA数据的大小！
+	HAL_UART_Receive_DMA(&huart1,usart1_ReadBuffer,1);//执行该函数后，先产生中断，然后产生接收完成回调函数(DMA循环模式或一次模式)
   /* USER CODE END 2 */
 
   /* Infinite loop */
