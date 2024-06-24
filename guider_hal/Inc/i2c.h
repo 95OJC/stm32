@@ -41,9 +41,7 @@ extern I2C_HandleTypeDef hi2c1;
 void MX_I2C1_Init(void);
 
 /* USER CODE BEGIN Prototypes */
-void soft_iic_gpio_init(void);
-void soft_iic_write_mem(uint32_t write_addr, uint8_t *pbuf);
-void soft_iic_read_mem(uint32_t read_addr, uint8_t *pbuf);
+
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus

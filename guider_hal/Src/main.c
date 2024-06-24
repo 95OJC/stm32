@@ -71,6 +71,17 @@ int fputc(int ch,FILE *f)
 	return ch;
 }
 
+//发送回调函数没有触发，为什么
+void HAL_I2C_MemTxCpltCallback(I2C_HandleTypeDef *hi2c)
+{
+	printf("HAL_I2C_MemTxCpltCallback\r\n");
+}
+
+void HAL_I2C_MemRxCpltCallback(I2C_HandleTypeDef *hi2c)
+
+{
+	printf("HAL_I2C_MemRxCpltCallback\r\n");
+}
 /* USER CODE END 0 */
 
 /**
@@ -105,19 +116,8 @@ int main(void)
   MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
 	printf("Start usart1 TX and RX...\r\n");
-	#if 0
 	extern void test_iic_eeprom(void);
 	test_iic_eeprom();
-	#else
-	uint8_t soft_iic_Wbuf[1] = {8};
-	uint8_t soft_iic_Rbuf[1] = {0};
-	
-	soft_iic_gpio_init();
-	soft_iic_write_mem(0, soft_iic_Wbuf);
-	printf("soft_iic_Rbuf = %d\r\n",soft_iic_Rbuf[0]);
-	soft_iic_read_mem(0, soft_iic_Rbuf);
-	printf("soft_iic_Rbuf = %d\r\n",soft_iic_Rbuf[0]);
-	#endif
   /* USER CODE END 2 */
 
   /* Infinite loop */
