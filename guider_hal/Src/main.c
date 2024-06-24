@@ -18,6 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "dma.h"
 #include "i2c.h"
 #include "usart.h"
 #include "gpio.h"
@@ -77,10 +78,26 @@ void HAL_I2C_MemTxCpltCallback(I2C_HandleTypeDef *hi2c)
 	printf("HAL_I2C_MemTxCpltCallback\r\n");
 }
 
+//使用DMA时，因为HAL库(HAL_I2C_Mem_Write_DMA里面或HAL_I2C_Mem_Read_DMA里面)会
+//覆盖掉DMA回调函数，然后会调用HAL_I2C_MemTxCpltCallback和HAL_I2C_MemRxCpltCallback
+//与中断回调函数一样。
 void HAL_I2C_MemRxCpltCallback(I2C_HandleTypeDef *hi2c)
-
 {
+	//需要打开IIC的EV中断，才能使用DMA产生该回调，而SPI不用打开其中断，打开DMA中断即可！
+	//为什么？
 	printf("HAL_I2C_MemRxCpltCallback\r\n");
+}
+
+//被覆盖，所以不执行
+void HAL_I2C_DMATxCpltCallback(DMA_HandleTypeDef *hi2c)
+{
+	printf("HAL_I2C_DMATxCpltCallback\r\n");
+}
+
+//被覆盖，所以不执行
+void HAL_I2C_DMARxCpltCallback(DMA_HandleTypeDef *hi2c)
+{
+	printf("HAL_I2C_DMARxCpltCallback\r\n");
 }
 /* USER CODE END 0 */
 
@@ -112,6 +129,7 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_USART1_UART_Init();
   MX_I2C1_Init();
   /* USER CODE BEGIN 2 */

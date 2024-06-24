@@ -25,6 +25,8 @@
 /* USER CODE END 0 */
 
 I2C_HandleTypeDef hi2c1;
+DMA_HandleTypeDef hdma_i2c1_rx;
+DMA_HandleTypeDef hdma_i2c1_tx;
 
 /* I2C1 init function */
 void MX_I2C1_Init(void)
@@ -79,6 +81,39 @@ void HAL_I2C_MspInit(I2C_HandleTypeDef* i2cHandle)
     /* I2C1 clock enable */
     __HAL_RCC_I2C1_CLK_ENABLE();
 
+    /* I2C1 DMA Init */
+    /* I2C1_RX Init */
+    hdma_i2c1_rx.Instance = DMA1_Channel7;
+    hdma_i2c1_rx.Init.Direction = DMA_PERIPH_TO_MEMORY;
+    hdma_i2c1_rx.Init.PeriphInc = DMA_PINC_DISABLE;
+    hdma_i2c1_rx.Init.MemInc = DMA_MINC_ENABLE;
+    hdma_i2c1_rx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
+    hdma_i2c1_rx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
+    hdma_i2c1_rx.Init.Mode = DMA_NORMAL;
+    hdma_i2c1_rx.Init.Priority = DMA_PRIORITY_LOW;
+    if (HAL_DMA_Init(&hdma_i2c1_rx) != HAL_OK)
+    {
+      Error_Handler();
+    }
+
+    __HAL_LINKDMA(i2cHandle,hdmarx,hdma_i2c1_rx);
+
+    /* I2C1_TX Init */
+    hdma_i2c1_tx.Instance = DMA1_Channel6;
+    hdma_i2c1_tx.Init.Direction = DMA_MEMORY_TO_PERIPH;
+    hdma_i2c1_tx.Init.PeriphInc = DMA_PINC_DISABLE;
+    hdma_i2c1_tx.Init.MemInc = DMA_MINC_ENABLE;
+    hdma_i2c1_tx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
+    hdma_i2c1_tx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
+    hdma_i2c1_tx.Init.Mode = DMA_NORMAL;
+    hdma_i2c1_tx.Init.Priority = DMA_PRIORITY_LOW;
+    if (HAL_DMA_Init(&hdma_i2c1_tx) != HAL_OK)
+    {
+      Error_Handler();
+    }
+
+    __HAL_LINKDMA(i2cHandle,hdmatx,hdma_i2c1_tx);
+
     /* I2C1 interrupt Init */
     HAL_NVIC_SetPriority(I2C1_EV_IRQn, 0, 0);
     HAL_NVIC_EnableIRQ(I2C1_EV_IRQn);
@@ -106,6 +141,10 @@ void HAL_I2C_MspDeInit(I2C_HandleTypeDef* i2cHandle)
     HAL_GPIO_DeInit(GPIOB, GPIO_PIN_6);
 
     HAL_GPIO_DeInit(GPIOB, GPIO_PIN_7);
+
+    /* I2C1 DMA DeInit */
+    HAL_DMA_DeInit(i2cHandle->hdmarx);
+    HAL_DMA_DeInit(i2cHandle->hdmatx);
 
     /* I2C1 interrupt Deinit */
     HAL_NVIC_DisableIRQ(I2C1_EV_IRQn);
@@ -140,7 +179,7 @@ void test_iic_eeprom(void)
 	HAL_Delay(1000);
 	printf("%s\r\n",ReadBuffer);
 	HAL_Delay(1000);
-#elif 1
+#elif 0
 	//中断方式写入读取（需要在stm32_hal_conf.h打开宏USE_HAL_I2C_REGISTER_CALLBACKS才能够触发HAL_I2C_MemRxCpltCallback之类的回调函数?好像不是）
 	//验证每发送或接收一个字节会进中断一次(hi2c->XferISR     = I2C_Master_ISR_IT)中断里触发该回调函数
 	//然后在中断里判断iic的数据完成标志位,而阻塞方式直接判断iic的数据完成标志位
@@ -156,14 +195,13 @@ void test_iic_eeprom(void)
 	HAL_Delay(1000);
 #else
 	//DMA中断方式写入读取
-	//先产生dma中断(里面判断是一半传输还是完成传输或传输错误等类型的中断)，再产生iic ev中断的接收中断，但是iic ev中断的发送中断没有产生，和上面的中断方式写入读取一样的问题
-	//因此先触发dma接收完成中断回调函数(有道笔记有介绍该回调函数怎么被HAL库注册了)，再触发iic的接收完成中断
+	//接收size数据后，会产生一次dma中断(里面判断是一半传输还是完成传输或传输错误等类型的中断)，再触发回调函数
 
-	/* 这里的注册会被HAL库覆盖掉的...*/
-	HAL_DMA_RegisterCallback(&hdma_i2c1_rx,HAL_DMA_XFER_CPLT_CB_ID,HAL_I2C_DMARxCpltCallback);
-	HAL_DMA_RegisterCallback(&hdma_i2c1_tx,HAL_DMA_XFER_CPLT_CB_ID,HAL_I2C_DMATxCpltCallback);
-	
+	/* 这里的注册会被HAL库(HAL_I2C_Mem_Write_DMA里面或HAL_I2C_Mem_Read_DMA里面)覆盖掉的...*/
+	//HAL_DMA_RegisterCallback(&hdma_i2c1_rx,HAL_DMA_XFER_CPLT_CB_ID,HAL_I2C_DMARxCpltCallback);
+	//HAL_DMA_RegisterCallback(&hdma_i2c1_tx,HAL_DMA_XFER_CPLT_CB_ID,HAL_I2C_DMATxCpltCallback);
 	if(HAL_I2C_Mem_Write_DMA(&hi2c1,AT24C02_Write,0,I2C_MEMADD_SIZE_8BIT,str3,sizeof(str3))==HAL_OK)
+	//if(HAL_I2C_Mem_Write(&hi2c1,AT24C02_Write,0,I2C_MEMADD_SIZE_8BIT,str1,sizeof(str1),1000)==HAL_OK)
 		printf("STR3_Write_OK\r\n");
 	HAL_Delay(1000);
 	HAL_I2C_Mem_Read_DMA(&hi2c1,AT24C02_Read,0,I2C_MEMADD_SIZE_8BIT,ReadBuffer,sizeof(str3));
