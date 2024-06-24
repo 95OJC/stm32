@@ -18,7 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "dma.h"
+#include "i2c.h"
 #include "usart.h"
 #include "gpio.h"
 
@@ -57,8 +57,6 @@ void SystemClock_Config(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 extern UART_HandleTypeDef huart1;
-unsigned char usart1_str[]="usart1_ojc";//写入的字符串
-uint8_t usart1_ReadBuffer[50];//读取缓存区
 
 //KEY1和KEY2中断回调函数
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
@@ -73,12 +71,6 @@ int fputc(int ch,FILE *f)
 	return ch;
 }
 
-//DMA接收中断完成回调函数与串口接收中断完成回调函数一样，因为在HAL_DMA接收中断完成回调函数里面调用了这个
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
-{
-	//HAL_UART_Receive_DMA(&huart1,usart1_ReadBuffer,1);//如果没有启动循环模式，就需要添加这句
-	printf("ReadBuffer = %s\r\n",usart1_ReadBuffer);
-}
 /* USER CODE END 0 */
 
 /**
@@ -109,14 +101,23 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_DMA_Init();
   MX_USART1_UART_Init();
+  MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
 	printf("Start usart1 TX and RX...\r\n");
-	HAL_UART_Transmit_DMA(&huart1,usart1_str,sizeof(usart1_str));
+	#if 0
+	extern void test_iic_eeprom(void);
+	test_iic_eeprom();
+	#else
+	uint8_t soft_iic_Wbuf[1] = {8};
+	uint8_t soft_iic_Rbuf[1] = {0};
 	
-	//需要配合串口空闲中断，才知道DMA什么时候结束传输，同时接收一包的数据需要小于程序设置接收一包DMA数据的大小！
-	HAL_UART_Receive_DMA(&huart1,usart1_ReadBuffer,1);//执行该函数后，先产生中断，然后产生接收完成回调函数(DMA循环模式或一次模式)
+	soft_iic_gpio_init();
+	soft_iic_write_mem(0, soft_iic_Wbuf);
+	printf("soft_iic_Rbuf = %d\r\n",soft_iic_Rbuf[0]);
+	soft_iic_read_mem(0, soft_iic_Rbuf);
+	printf("soft_iic_Rbuf = %d\r\n",soft_iic_Rbuf[0]);
+	#endif
   /* USER CODE END 2 */
 
   /* Infinite loop */
