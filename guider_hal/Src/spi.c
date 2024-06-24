@@ -87,6 +87,9 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef* spiHandle)
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
+    /* SPI1 interrupt Init */
+    HAL_NVIC_SetPriority(SPI1_IRQn, 0, 0);
+    HAL_NVIC_EnableIRQ(SPI1_IRQn);
   /* USER CODE BEGIN SPI1_MspInit 1 */
 
   /* USER CODE END SPI1_MspInit 1 */
@@ -111,6 +114,8 @@ void HAL_SPI_MspDeInit(SPI_HandleTypeDef* spiHandle)
     */
     HAL_GPIO_DeInit(GPIOA, GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_7);
 
+    /* SPI1 interrupt Deinit */
+    HAL_NVIC_DisableIRQ(SPI1_IRQn);
   /* USER CODE BEGIN SPI1_MspDeInit 1 */
 
   /* USER CODE END SPI1_MspDeInit 1 */
@@ -152,8 +157,12 @@ void spi_flash_read_jid(void)
 	cmd[0] = W25X_JedecDeviceID;
 	
 	spi_flash_connect();
-	HAL_SPI_Transmit(&hspi1,cmd,sizeof(cmd),1000);
-	HAL_SPI_Receive(&hspi1,jid,sizeof(jid),1000);
+	//HAL_SPI_Transmit(&hspi1,cmd,sizeof(cmd),1000);
+	HAL_SPI_Transmit_IT(&hspi1,cmd,sizeof(cmd));
+	HAL_Delay(1000);
+	//HAL_SPI_Receive(&hspi1,jid,sizeof(jid),1000);
+	HAL_SPI_Receive_IT(&hspi1,jid,sizeof(jid));
+	HAL_Delay(2000);
 	spi_flash_disconnect();
 
 	printf("jid = 0x%x,0x%x,0x%x\r\n",jid[0],jid[1],jid[2]);

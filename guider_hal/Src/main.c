@@ -71,6 +71,15 @@ int fputc(int ch,FILE *f)
 	return ch;
 }
 
+void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi)
+{
+	printf("HAL_SPI_TxCpltCallback\r\n");
+}
+
+void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi)
+{
+	printf("HAL_SPI_RxCpltCallback\r\n");
+}
 /* USER CODE END 0 */
 
 /**
